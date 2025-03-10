@@ -1,0 +1,28 @@
+/* .container {
+    display: flex;
+}
+
+#sidebar {
+    width: 300px;
+    padding: 15px;
+    background: #f4f4f4;
+    border-right: 1px solid #ccc;
+}
+
+#map {
+    flex-grow: 1;
+    height: 600px;
+}
+
+<div class="flex">
+    <aside class="w-1/4 p-4 bg-gray-100 h-screen">
+        <h2 class="text-lg font-bold">Manage Geofences</h2>
+        <select id="businessType" class="w-full p-2 border">
+            <option value="supermarket">Supermarket</option>
+            <option value="fitness_supplement">Fitness Supplement</option>
+            <option value="cafe">Café</option>
+        </select>
+        <ul id="geofenceList" class="mt-4 space-y-2"></ul>
+    </aside>
+    <div id="map" class="w-3/4 h-screen"></div>
+</div> */

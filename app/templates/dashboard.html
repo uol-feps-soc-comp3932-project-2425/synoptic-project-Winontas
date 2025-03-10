@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geofencing Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXA-0dLRCclu3Cw1S7UUaHeGR0maF13Io&libraries=drawing"></script>
+    <script defer src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-1/4 p-4 bg-white shadow-lg h-screen overflow-y-auto">
+            <h2 class="text-lg font-bold mb-4">Manage Geofences</h2>
+            
+            <!-- Business Type Dropdown -->
+            <label class="block text-sm font-medium text-gray-700">Business Type</label>
+            <select id="businessType" class="w-full p-2 border rounded mb-4">
+                <option value="supermarket">Supermarket</option>
+                <option value="fitness_supplement">Fitness Supplement</option>
+                <option value="cafe">Café</option>
+            </select>
+
+            <!-- Geofence List -->
+            <ul id="geofenceList" class="space-y-2"></ul>
+        </aside>
+
+        <!-- Map Container -->
+        <div id="map" class="w-3/4 h-screen"></div>
+    </div>
+</body>
+</html>
