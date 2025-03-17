@@ -1,33 +1,26 @@
 let map;
 let drawingManager;
-let geofences = [];
-let competitorMarkers = [];
-const leedsCenter = { lat: 53.8008, lng: -1.5491 }; // Leeds, UK
+let geofences = []; // Stores geofences locally
+let competitorMarkers = []; // Store current markers
+let placesService; // Google Places service
 
-// Predefined competitor locations based on business type
-const competitorLocations = {
-    supermarket: [
-        { name: "Tesco", lat: 53.8010, lng: -1.5485 },
-        { name: "Sainsbury’s", lat: 53.7985, lng: -1.5478 },
-    ],
-    fitness_supplement: [
-        { name: "Holland & Barrett", lat: 53.7992, lng: -1.5480 },
-        { name: "GNC", lat: 53.8020, lng: -1.5502 },
-    ],
-    cafe: [
-        { name: "Starbucks", lat: 53.8015, lng: -1.5490 },
-        { name: "Costa Coffee", lat: 53.7988, lng: -1.5469 },
-    ],
+// Map of business type values to Google Places type
+const businessTypeToPlacesType = {
+    supermarket: 'supermarket',
+    fitness_supplement: 'gym', // Places API doesn't have supplement stores specifically
+    cafe: 'cafe'
 };
 
 // Initialise Google Map
 function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
-        center: leedsCenter,
+        center: { lat: 53.8008, lng: -1.5491 }, // Leeds, UK
         zoom: 12,
     });
+    
+    // Initialize Places service
+    placesService = new google.maps.places.PlacesService(map);
 
-    // Set up drawing manager for geofences
     drawingManager = new google.maps.drawing.DrawingManager({
         drawingMode: google.maps.drawing.OverlayType.POLYGON,
         drawingControl: true,
@@ -45,29 +38,73 @@ function initMap() {
 
     drawingManager.setMap(map);
 
-    // Add event listener when a geofence is drawn
+    // When a new geofence is created
     google.maps.event.addListener(drawingManager, "overlaycomplete", (event) => {
         if (event.type === google.maps.drawing.OverlayType.POLYGON) {
-            addGeofence(event.overlay);
+            const newGeofence = {
+                id: Date.now(), 
+                polygon: event.overlay,
+                active: false,
+                name: `Geofence ${geofences.length + 1}`,
+                business_type: document.getElementById("businessType").value,
+            };
+
+            geofences.push(newGeofence);
+            updateGeofenceList();
         }
     });
-
+    
     // Event listener for business type selection
     document.getElementById("businessType").addEventListener("change", updateCompetitorMarkers);
+    
+    // Load competitors for the default business type
+    updateCompetitorMarkers();
 }
 
-// Adds a new geofence to the map and sidebar
-function addGeofence(polygon) {
-    const newGeofence = {
-        id: Date.now(),
-        polygon: polygon,
-        active: false,
-        name: `Geofence ${geofences.length + 1}`,
-        business_type: document.getElementById("businessType").value,
+// Updates competitor markers based on selected business type
+function updateCompetitorMarkers() {
+    // Remove existing markers
+    competitorMarkers.forEach(marker => marker.setMap(null));
+    competitorMarkers = [];
+    
+    const selectedType = document.getElementById("businessType").value;
+    const placesType = businessTypeToPlacesType[selectedType];
+    
+    if (!placesType) return;
+    
+    // Define the search request
+    const request = {
+        location: map.getCenter(),
+        radius: 5000, // Search within 5km
+        type: placesType
     };
-
-    geofences.push(newGeofence);
-    updateGeofenceList();
+    
+    // Perform a nearby search
+    placesService.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+            results.forEach(place => {
+                const marker = new google.maps.Marker({
+                    position: place.geometry.location,
+                    map: map,
+                    title: place.name,
+                    icon: {
+                        url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                    },
+                });
+                
+                // Add info window when clicking on marker
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `<strong>${place.name}</strong><br>${place.vicinity || ''}`
+                });
+                
+                marker.addListener('click', () => {
+                    infoWindow.open(map, marker);
+                });
+                
+                competitorMarkers.push(marker);
+            });
+        }
+    });
 }
 
 // Updates sidebar with geofences
@@ -107,35 +144,12 @@ function toggleGeofence(id) {
 
 // Delete geofence
 function deleteGeofence(id) {
-    const geofenceIndex = geofences.findIndex((g) => g.id === id);
-    if (geofenceIndex !== -1) {
-        geofences[geofenceIndex].polygon.setMap(null);
-        geofences.splice(geofenceIndex, 1);
-        updateGeofenceList();
+    const geofence = geofences.find(g => g.id === id);
+    if (geofence && geofence.polygon) {
+        geofence.polygon.setMap(null);
     }
-}
-
-// Updates competitor markers based on selected business type
-function updateCompetitorMarkers() {
-    const selectedType = document.getElementById("businessType").value;
-
-    // Remove existing markers
-    competitorMarkers.forEach(marker => marker.setMap(null));
-    competitorMarkers = [];
-
-    if (competitorLocations[selectedType]) {
-        competitorLocations[selectedType].forEach(location => {
-            const marker = new google.maps.Marker({
-                position: { lat: location.lat, lng: location.lng },
-                map: map,
-                title: location.name,
-                icon: {
-                    url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-                },
-            });
-            competitorMarkers.push(marker);
-        });
-    }
+    geofences = geofences.filter((g) => g.id !== id);
+    updateGeofenceList();
 }
 
 // Load the map when the window loads
