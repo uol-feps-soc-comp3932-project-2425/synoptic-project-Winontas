@@ -329,7 +329,7 @@ function updateTrackingList() {
 }
 
 // Updates competitor markers
-function updateCompetitorMarkers() {
+async function updateCompetitorMarkers() {
     competitorMarkers.forEach(marker => marker.setMap(null));
     competitorMarkers = [];
 
@@ -341,73 +341,90 @@ function updateCompetitorMarkers() {
         return;
     }
 
-    const requestBody = {
-        textQuery: `${placesType} in Leeds, UK` // Narrow search to Leeds
-    };
+    // Define multiple query variations to get more results
+    const queries = [
+        `${placesType} in Leeds, UK`,
+        `${placesType} near Leeds city center`,
+        `${placesType} in Leeds suburbs`,
+        `${placesType} around Leeds, UK`
+    ];
 
     const url = "https://places.googleapis.com/v1/places:searchText";
+    const allPlaces = new Set(); // Use Set to avoid duplicates by location
 
-    fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-Goog-Api-Key": "AIzaSyAFplA5X2oW5-rRak8s4HT6JhBuZl53wp8",
-            "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location"
-        },
-        body: JSON.stringify(requestBody)
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("HTTP error! status: " + response.status);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.places && data.places.length) {
-            data.places.forEach(place => {
-                const loc = place.location;
-                if (!loc || loc.latitude === undefined || loc.longitude === undefined) {
-                    console.warn("Place missing geometry:", place);
-                    return;
-                }
-
-                const markerIcon = {
-                    supermarket: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                    fitness_supplement: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                    cafe: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
-                }[selectedType] || 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
-
-                const marker = new google.maps.Marker({
-                    position: { lat: loc.latitude, lng: loc.longitude },
-                    map: map,
-                    icon: {
-                        url: markerIcon,
-                        scaledSize: new google.maps.Size(32, 32)
-                    },
-                    title: place.displayName ? place.displayName.text : "Unknown"
-                });
-
-                const infoWindow = new google.maps.InfoWindow({
-                    content: `
-                        <div>
-                            <h3>${place.displayName ? place.displayName.text : "Unknown"}</h3>
-                            <p>Type: ${selectedType}</p>
-                            <p>${place.formattedAddress || "Address not available"}</p>
-                        </div>
-                    `
-                });
-
-                marker.addListener('click', () => {
-                    infoWindow.open(map, marker);
-                });
-
-                competitorMarkers.push(marker);
+    for (const query of queries) {
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Goog-Api-Key": "AIzaSyAFplA5X2oW5-rRak8s4HT6JhBuZl53wp8",
+                    "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location"
+                },
+                body: JSON.stringify({ textQuery: query })
             });
-        } else {
-            console.error("No places found or error in response:", data);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.places && data.places.length) {
+                data.places.forEach(place => {
+                    const loc = place.location;
+                    if (!loc || loc.latitude === undefined || loc.longitude === undefined) {
+                        console.warn("Place missing geometry:", place);
+                        return;
+                    }
+                    // Use lat/lng as a unique key to avoid duplicates
+                    const key = `${loc.latitude},${loc.longitude}`;
+                    allPlaces.add({ ...place, key });
+                });
+            }
+        } catch (error) {
+            console.error(`Error fetching ${query}:`, error);
         }
-    })
-    .catch(error => console.error("Error fetching competitor locations:", error));
+    }
+
+    // Convert Set to Array and limit to unique entries
+    const uniquePlaces = Array.from(allPlaces).slice(0, 50); // Cap at 50 for performance, adjust as needed
+
+    uniquePlaces.forEach(place => {
+        const loc = place.location;
+        const markerIcon = {
+            supermarket: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+            fitness_supplement: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+            cafe: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
+        }[selectedType] || 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+
+        const marker = new google.maps.Marker({
+            position: { lat: loc.latitude, lng: loc.longitude },
+            map: map,
+            icon: {
+                url: markerIcon,
+                scaledSize: new google.maps.Size(32, 32)
+            },
+            title: place.displayName ? place.displayName.text : "Unknown"
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                <div>
+                    <h3>${place.displayName ? place.displayName.text : "Unknown"}</h3>
+                    <p>Type: ${selectedType}</p>
+                    <p>${place.formattedAddress || "Address not available"}</p>
+                </div>
+            `
+        });
+
+        marker.addListener('click', () => {
+            infoWindow.open(map, marker);
+        });
+
+        competitorMarkers.push(marker);
+    });
+
+    console.log(`Added ${competitorMarkers.length} markers for ${selectedType}`);
 }
 
 // Update geofence list
