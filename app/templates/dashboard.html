@@ -9,23 +9,27 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAFplA5X2oW5-rRak8s4HT6JhBuZl53wp8&libraries=places,drawing" async defer></script>
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
 </head>
-<body class="bg-gray-100">
-    <div class="flex h-screen">
+<body class="bg-gray-100 flex flex-col h-screen">
+    <div class="flex flex-1 overflow-hidden">
         <!-- Sidebar -->
-        <aside class="w-1/4 p-4 bg-white shadow-lg h-screen overflow-y-auto">
+        <aside class="w-1/4 p-4 bg-white shadow-lg overflow-y-auto">
             <h2 class="text-lg font-bold mb-4">Manage Geofences</h2>
             <label class="block text-sm font-medium text-gray-700">Business Type</label>
-            <select id="businessType" class="w-full p-2 border rounded mb-4">
+            <select id="businessType" class="w-full p-2 border rounded mb-4" onchange="updateGeofenceList(); updateCompetitorMarkers();">
+                <option value="all">All Categories</option>
                 <option value="supermarket">Supermarket</option>
                 <option value="fitness_supplement">Fitness Supplement</option>
                 <option value="cafe">Café</option>
             </select>
             <ul id="geofenceList" class="space-y-2"></ul>
-            <h2 class="text-lg font-bold mt-4 mb-2">User Tracking</h2>
-            <ul id="trackingList" class="space-y-2"></ul>
         </aside>
         <!-- Map Container -->
-        <div id="map" class="w-3/4 h-screen"></div>
+        <div id="map" class="w-3/4 h-[70vh]"></div> <!-- Reduced height -->
+    </div>
+    <!-- Analytics Section -->
+    <div class="p-4 bg-white shadow-lg h-[30vh] overflow-y-auto">
+        <h2 class="text-lg font-bold mb-4">Geofence Analytics</h2>
+        <ul id="analyticsList" class="space-y-2"></ul>
     </div>
 </body>
 </html>
