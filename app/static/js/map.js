@@ -108,9 +108,15 @@ function initMap() {
         return;
     }
 
-    map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 53.8008, lng: -1.5491 }, // Leeds, UK
-        zoom: 12,
+    const mapDiv = document.getElementById("map");
+    if (!mapDiv) {
+        console.error("Map div not found in DOM!");
+        return;
+    }
+
+    map = new google.maps.Map(mapDiv, {
+        center: { lat: 53.7996, lng: -1.5492 }, // Leeds city center
+        zoom: 15, // More zoomed in
         mapTypeControl: true,
         fullscreenControl: true,
     });
@@ -324,80 +330,100 @@ function updateTrackingList() {
 
 // Updates competitor markers
 function updateCompetitorMarkers() {
-    // Remove existing markers
     competitorMarkers.forEach(marker => marker.setMap(null));
     competitorMarkers = [];
-    
+
     const selectedType = document.getElementById("businessType").value;
     const placesType = businessTypeToPlacesType[selectedType];
-    
+
     if (!placesType) {
-      console.warn("No mapping found for business type:", selectedType);
-      return;
+        console.warn("No mapping found for business type:", selectedType);
+        return;
     }
-    
+
     const requestBody = {
-      textQuery: placesType
+        textQuery: `${placesType} in Leeds, UK` // Narrow search to Leeds
     };
-    
+
     const url = "https://places.googleapis.com/v1/places:searchText";
-    
+
     fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": "AIzaSyAFplA5X2oW5-rRak8s4HT6JhBuZl53wp8", // Replace with your actual key.
-        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.priceLevel,places.location"
-      },
-      body: JSON.stringify(requestBody)
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": "AIzaSyAFplA5X2oW5-rRak8s4HT6JhBuZl53wp8",
+            "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location"
+        },
+        body: JSON.stringify(requestBody)
     })
-      .then(response => {
+    .then(response => {
         if (!response.ok) {
-          throw new Error("HTTP error! status: " + response.status);
+            throw new Error("HTTP error! status: " + response.status);
         }
         return response.json();
-      })
-      .then(data => {
+    })
+    .then(data => {
         if (data.places && data.places.length) {
-          data.places.forEach(place => {
-            // Check for location field.
-            const loc = place.location;
-            if (!loc || loc.latitude === undefined || loc.longitude === undefined) {
-              console.warn("Place missing geometry:", place);
-              return;
-            }
-            
-            const marker = new google.maps.Marker({
-              position: { 
-                lat: loc.latitude, 
-                lng: loc.longitude 
-              },
-              map: map,
-              title: place.displayName ? place.displayName.text : "Unknown"
+            data.places.forEach(place => {
+                const loc = place.location;
+                if (!loc || loc.latitude === undefined || loc.longitude === undefined) {
+                    console.warn("Place missing geometry:", place);
+                    return;
+                }
+
+                const markerIcon = {
+                    supermarket: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                    fitness_supplement: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                    cafe: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
+                }[selectedType] || 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+
+                const marker = new google.maps.Marker({
+                    position: { lat: loc.latitude, lng: loc.longitude },
+                    map: map,
+                    icon: {
+                        url: markerIcon,
+                        scaledSize: new google.maps.Size(32, 32)
+                    },
+                    title: place.displayName ? place.displayName.text : "Unknown"
+                });
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div>
+                            <h3>${place.displayName ? place.displayName.text : "Unknown"}</h3>
+                            <p>Type: ${selectedType}</p>
+                            <p>${place.formattedAddress || "Address not available"}</p>
+                        </div>
+                    `
+                });
+
+                marker.addListener('click', () => {
+                    infoWindow.open(map, marker);
+                });
+
+                competitorMarkers.push(marker);
             });
-            competitorMarkers.push(marker);
-          });
         } else {
-          console.error("No places found or error in response:", data);
+            console.error("No places found or error in response:", data);
         }
-      })
-      .catch(error => {
-        console.error("Error fetching competitor locations:", error);
-      });
-  }
+    })
+    .catch(error => console.error("Error fetching competitor locations:", error));
+}
 
 // Update geofence list
 function updateGeofenceList() {
     const list = document.getElementById("geofenceList");
+    const selectedType = document.getElementById("businessType").value;
     list.innerHTML = geofences.length === 0 
         ? "<p class='text-gray-500 p-2'>No geofences created yet.</p>"
         : "";
 
-    geofences.forEach(g => {
+    const filteredGeofences = geofences.filter(g => g.business_type === selectedType || selectedType === "all");
+    filteredGeofences.forEach(g => {
         const item = document.createElement("li");
         item.classList = "flex justify-between items-center p-2 bg-gray-200 rounded shadow mb-2";
         item.innerHTML = `
-            <span class="font-medium">${g.name} (${g.business_type})</span>
+            <input type="text" value="${g.name}" class="font-medium border rounded p-1 w-1/2" onchange="editGeofenceName(${g.id}, this.value)">
             <div>
                 <button onclick="toggleGeofence(${g.id})" class="px-3 py-1 rounded shadow ${g.active ? 'bg-green-500' : 'bg-blue-500'} text-white mr-2">
                     ${g.active ? "Deactivate" : "Activate"}
@@ -409,6 +435,15 @@ function updateGeofenceList() {
         `;
         list.appendChild(item);
     });
+}
+
+function editGeofenceName(id, newName) {
+    const geofence = geofences.find(g => g.id === id);
+    if (geofence) {
+        geofence.name = newName;
+        updateGeofenceInBackend(geofence);
+        console.log(`Geofence ${id} renamed to ${newName}`);
+    }
 }
 
 // Toggle geofence
