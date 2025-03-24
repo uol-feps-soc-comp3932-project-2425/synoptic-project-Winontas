@@ -3,39 +3,108 @@ let drawingManager;
 let geofences = []; // Stores geofences locally
 let competitorMarkers = []; // Store current markers
 let placesService; // Google Places service
+let simulatedUsers = []; // Simulated user data
+let currentSimulatedDate = new Date("2025-03-24T00:00:00");
+
 
 // Map of business type values to Google Places type
 const businessTypeToPlacesType = {
     supermarket: 'supermarket',
-    fitness_supplement: 'gym', // Places API doesn't have supplement stores specifically
+    fitness_supplement: 'gym',
     cafe: 'cafe'
 };
+
+// Load simulated users from backend
+async function initializeSimulatedUsers(dataset = 'patterns') {
+    try {
+        const response = await fetch(`/api/simulated_users?dataset=${dataset}`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch simulated users: ${response.status}`);
+        }
+        const data = await response.json();
+        
+        simulatedUsers = data.users.map(user => ({
+            id: user.id,
+            name: user.name,
+            lat: user.start_lat,
+            lng: user.start_lng,
+            lastUpdate: null,
+            insideGeofences: {},
+            schedule: user.schedule || []
+        }));
+        console.log(`Loaded ${simulatedUsers.length} users from dataset: ${data.description}`);
+    } catch (error) {
+        console.error("Error initializing simulated users:", error);
+        simulatedUsers = []; // Fallback to empty array
+    }
+}
+
+
+// Simulate user movement based on schedule
+function simulateUserMovement() {
+    const dayOfWeek = currentSimulatedDate.toLocaleString('en-US', { weekday: 'long' });
+    const currentHour = currentSimulatedDate.getHours() + currentSimulatedDate.getMinutes() / 60;
+
+    simulatedUsers.forEach(user => {
+        let targetLat, targetLng;
+
+        const scheduledVisit = user.schedule.find(s => 
+            s.day === dayOfWeek && 
+            currentHour >= s.start_hour && 
+            currentHour < s.start_hour + s.duration
+        );
+
+        if (scheduledVisit) {
+            const targetGeofence = geofences.find(g => g.business_type === scheduledVisit.location && g.active);
+            if (targetGeofence) {
+                const centroid = calculateCentroid(targetGeofence.coordinates);
+                targetLat = centroid.lat;
+                targetLng = centroid.lng;
+            }
+        }
+
+        if (!targetLat || !targetLng) {
+            targetLat = user.lat + (Math.random() - 0.5) * 0.001;
+            targetLng = user.lng + (Math.random() - 0.5) * 0.001;
+        }
+
+        user.lat = targetLat;
+        user.lng = targetLng;
+        user.lastUpdate = new Date(currentSimulatedDate);
+
+        geofences.forEach(geofence => {
+            if (!geofence.active) return;
+
+            const isInside = google.maps.geometry.poly.containsLocation(
+                new google.maps.LatLng(user.lat, user.lng),
+                geofence.polygon
+            );
+
+            const geofenceKey = geofence.id;
+            if (isInside && !user.insideGeofences[geofenceKey]) {
+                user.insideGeofences[geofenceKey] = { entryTime: new Date(currentSimulatedDate) };
+                console.log(`${user.name} entered ${geofence.name} at ${currentSimulatedDate}`);
+                saveTrackingData(user, geofence, "entry");
+            } else if (!isInside && user.insideGeofences[geofenceKey]) {
+                const entryTime = user.insideGeofences[geofenceKey].entryTime;
+                const exitTime = new Date(currentSimulatedDate);
+                const duration = (exitTime - entryTime) / 1000 / 60;
+                console.log(`${user.name} exited ${geofence.name}. Duration: ${duration.toFixed(1)} min`);
+                delete user.insideGeofences[geofenceKey];
+                saveTrackingData(user, geofence, "exit", duration);
+            }
+        });
+    });
+}
 
 // Initialise Google Map
 function initMap() {
     console.log("Initializing Google Maps...");
     
-    // Check if Google Maps API is loaded
     if (typeof google === "undefined" || !google.maps) {
         console.error("Google Maps API not loaded properly!");
         document.getElementById("map").innerHTML = 
-            "<div class='p-4 bg-red-100 text-red-700'>Error loading Google Maps API. Please check your API key.</div>";
-        return;
-    }
-    
-    // Check if Places API is available
-    if (!google.maps.places) {
-        console.error("Places library not loaded. Ensure &libraries=places in the script URL.");
-        document.getElementById("map").innerHTML = 
-            "<div class='p-4 bg-red-100 text-red-700'>Error: Places library not loaded. Check your script tag to include &libraries=places.</div>";
-        return;
-    }
-
-    // Check if Drawing library is available
-    if (!google.maps.drawing) {
-        console.error("Drawing library not loaded. Ensure &libraries=drawing in the script URL.");
-        document.getElementById("map").innerHTML = 
-            "<div class='p-4 bg-red-100 text-red-700'>Error: Drawing library not loaded. Check your script tag to include &libraries=drawing.</div>";
+            "<div class='p-4 bg-red-100 text-red-700'>Error loading Google Maps API.</div>";
         return;
     }
 
@@ -46,72 +115,214 @@ function initMap() {
         fullscreenControl: true,
     });
 
-    console.log("Map initialized successfully");
-    
-    // Initialize Places service with proper error handling
-    try {
-        placesService = new google.maps.places.PlacesService(map);
-        console.log("PlacesService initialized successfully");
-    } catch (error) {
-        console.error("Failed to initialize Places service:", error);
-        document.getElementById("map").innerHTML += 
-            "<div class='p-4 bg-red-100 text-red-700'>Error initializing Places service. Please check your API key permissions.</div>";
-        return;
-    }
+    placesService = new google.maps.places.PlacesService(map);
 
     // Initialize drawing manager
-    try {
-        drawingManager = new google.maps.drawing.DrawingManager({
-            drawingMode: google.maps.drawing.OverlayType.POLYGON,
-            drawingControl: true,
-            drawingControlOptions: {
-                position: google.maps.ControlPosition.TOP_CENTER,
-                drawingModes: ["polygon"],
-            },
-            polygonOptions: {
-                fillColor: "#FF0000",
-                fillOpacity: 0.35,
-                strokeWeight: 2,
-                editable: true,
-            },
-        });
+    drawingManager = new google.maps.drawing.DrawingManager({
+        drawingMode: google.maps.drawing.OverlayType.POLYGON,
+        drawingControl: true,
+        drawingControlOptions: {
+            position: google.maps.ControlPosition.TOP_CENTER,
+            drawingModes: ["polygon"],
+        },
+        polygonOptions: {
+            fillColor: "#FF0000",
+            fillOpacity: 0.35,
+            strokeWeight: 2,
+            clickable: true,
+            editable: true,
+            draggable: true
+        },
+    });
 
-        drawingManager.setMap(map);
-        console.log("Drawing manager initialized successfully");
-    } catch (error) {
-        console.error("Failed to initialize Drawing Manager:", error);
-        return;
-    }
+    drawingManager.setMap(map);
 
     // When a new geofence is created
     google.maps.event.addListener(drawingManager, "overlaycomplete", (event) => {
         if (event.type === google.maps.drawing.OverlayType.POLYGON) {
+            const coordinates = event.overlay.getPath().getArray().map(p => ({ lat: p.lat(), lng: p.lng() }));
             const newGeofence = {
-                id: Date.now(), 
+                id: Date.now(), // Temporary ID
                 polygon: event.overlay,
                 active: false,
                 name: `Geofence ${geofences.length + 1}`,
                 business_type: document.getElementById("businessType").value,
+                coordinates: coordinates
             };
 
+            google.maps.event.addListener(event.overlay.getPath(), 'set_at', () => updateGeofencePaths(newGeofence));
+            google.maps.event.addListener(event.overlay.getPath(), 'insert_at', () => updateGeofencePaths(newGeofence));
+
             geofences.push(newGeofence);
-            updateGeofenceList();
+            saveGeofenceToBackend(newGeofence).then(savedGeofence => {
+                newGeofence.id = savedGeofence.id; // Update with server ID
+                updateGeofenceList();
+            });
             console.log("New geofence created:", newGeofence.name);
         }
     });
-    
-    // Event listener for business type selection
-    document.getElementById("businessType").addEventListener("change", function() {
-        const selectedType = this.value;
-        console.log("Business type changed to:", selectedType);
-        updateCompetitorMarkers();
-    });
-    
-    // Load competitors for the default business type
+
+    document.getElementById("businessType").addEventListener("change", updateCompetitorMarkers);
+    initializeSimulatedUsers('patterns'); // Default to patterns dataset
+    loadGeofencesFromBackend(); // Load existing geofences
     updateCompetitorMarkers();
+    startUserSimulation();
 }
 
-// Updates competitor markers based on selected business type
+// Load existing geofences from backend
+function loadGeofencesFromBackend() {
+    fetch('/geofences')
+        .then(response => response.json())
+        .then(data => {
+            geofences.forEach(g => g.polygon.setMap(null)); // Remove polygons from map
+            geofences = []; // Reset the array
+
+            data.forEach(g => {
+                const polygon = new google.maps.Polygon({
+                    paths: g.coordinates,
+                    fillColor: g.active ? "#00FF00" : "#FF0000",
+                    fillOpacity: g.active ? 0.5 : 0.35,
+                    strokeWeight: 2,
+                    clickable: true,
+                    editable: true,
+                    draggable: true,
+                    map: map
+                });
+
+                const geofence = {
+                    id: g.id,
+                    polygon: polygon,
+                    active: g.active,
+                    name: g.name,
+                    business_type: g.business_type,
+                    coordinates: g.coordinates
+                };
+
+                google.maps.event.addListener(polygon.getPath(), 'set_at', () => updateGeofencePaths(geofence));
+                google.maps.event.addListener(polygon.getPath(), 'insert_at', () => updateGeofencePaths(geofence));
+
+                geofences.push(geofence);
+            });
+            updateGeofenceList();
+        })
+        .catch(error => console.error("Error loading geofences:", error));
+}
+
+// Update geofence paths when edited
+function updateGeofencePaths(geofence) {
+    geofence.coordinates = geofence.polygon.getPath().getArray().map(p => ({ lat: p.lat(), lng: p.lng() }));
+    updateGeofenceInBackend(geofence); // Use PUT instead of POST
+    console.log(`Geofence ${geofence.name} paths updated`);
+}
+
+// Save new geofence to Flask backend (POST)
+async function saveGeofenceToBackend(geofence) {
+    const response = await fetch('/geofences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            business_type: geofence.business_type,
+            name: geofence.name,
+            coordinates: geofence.coordinates,
+            active: geofence.active
+        })
+    });
+    const data = await response.json();
+    return { id: data.id };
+}
+
+// Update existing geofence in Flask backend (PUT)
+async function updateGeofenceInBackend(geofence) {
+    await fetch(`/geofences/${geofence.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            business_type: geofence.business_type,
+            name: geofence.name,
+            coordinates: geofence.coordinates,
+            active: geofence.active
+        })
+    });
+}
+
+// Simulate user movement and track geofence activity
+function startUserSimulation() {
+    setInterval(() => {
+        simulatedUsers.forEach(user => {
+            user.lat += (Math.random() - 0.5) * 0.001;
+            user.lng += (Math.random() - 0.5) * 0.001;
+            user.lastUpdate = new Date();
+
+            geofences.forEach(geofence => {
+                if (!geofence.active) return;
+
+                const isInside = google.maps.geometry.poly.containsLocation(
+                    new google.maps.LatLng(user.lat, user.lng),
+                    geofence.polygon
+                );
+
+                const geofenceKey = geofence.id;
+                if (isInside && !user.insideGeofences[geofenceKey]) {
+                    user.insideGeofences[geofenceKey] = { entryTime: new Date() };
+                    console.log(`${user.name} entered ${geofence.name}`);
+                    saveTrackingData(user, geofence, "entry");
+                } else if (!isInside && user.insideGeofences[geofenceKey]) {
+                    const entryTime = user.insideGeofences[geofenceKey].entryTime;
+                    const exitTime = new Date();
+                    const duration = (exitTime - entryTime) / 1000;
+                    console.log(`${user.name} exited ${geofence.name}. Duration: ${duration}s`);
+                    delete user.insideGeofences[geofenceKey];
+                    saveTrackingData(user, geofence, "exit", duration);
+                }
+            });
+        });
+        updateTrackingList();
+    }, 5000);
+}
+
+// Save tracking data to Flask backend
+function saveTrackingData(user, geofence, eventType, duration = null) {
+    fetch('/api/save_tracking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            user_id: user.id,
+            user_name: user.name,
+            geofence_id: geofence.id,
+            geofence_name: geofence.name,
+            event_type: eventType,
+            timestamp: new Date().toISOString(),
+            duration: duration
+        })
+    })
+    .then(response => response.json())
+    .catch(error => console.error("Error saving tracking data:", error));
+}
+
+// Update tracking list in UI
+function updateTrackingList() {
+    const trackingList = document.getElementById("trackingList") || document.createElement("ul");
+    trackingList.id = "trackingList";
+    trackingList.className = "space-y-2 p-4";
+    if (!trackingList.parentElement) document.querySelector("aside").appendChild(trackingList);
+
+    trackingList.innerHTML = "";
+    simulatedUsers.forEach(user => {
+        Object.keys(user.insideGeofences).forEach(geofenceId => {
+            const geofence = geofences.find(g => g.id == geofenceId);
+            if (!geofence) return;
+
+            const entryTime = user.insideGeofences[geofenceId].entryTime;
+            const duration = (new Date() - entryTime) / 1000;
+
+            const item = document.createElement("li");
+            item.innerHTML = `${user.name} in ${geofence.name} since ${entryTime.toLocaleTimeString()} (${duration.toFixed(1)}s)`;
+            trackingList.appendChild(item);
+        });
+    });
+}
+
+// Updates competitor markers
 function updateCompetitorMarkers() {
     // Remove existing markers
     competitorMarkers.forEach(marker => marker.setMap(null));
@@ -174,81 +385,24 @@ function updateCompetitorMarkers() {
         console.error("Error fetching competitor locations:", error);
       });
   }
-  
-  
-  
-  
 
-// Handle Places API errors
-function handlePlacesError(status) {
-    console.error("Places API error:", status);
-    
-    let errorMessage = "Error loading competitor data";
-    
-    switch(status) {
-        case google.maps.places.PlacesServiceStatus.ZERO_RESULTS:
-            errorMessage = "No results found in this area";
-            break;
-        case google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT:
-            errorMessage = "Query limit exceeded. Please try again later";
-            break;
-        case google.maps.places.PlacesServiceStatus.REQUEST_DENIED:
-            errorMessage = "Places API request denied. Check your API key permissions";
-            break;
-        case google.maps.places.PlacesServiceStatus.INVALID_REQUEST:
-            errorMessage = "Invalid request to Places API";
-            break;
-        default:
-            errorMessage = `Places API error: ${status}`;
-    }
-    
-    // Display user-friendly error
-    const errorDiv = document.createElement("div");
-    errorDiv.className = "p-2 m-2 bg-red-100 text-red-700 rounded";
-    errorDiv.textContent = errorMessage;
-    
-    // Add to page
-    const geofenceList = document.getElementById("geofenceList");
-    if (geofenceList) {
-        geofenceList.prepend(errorDiv);
-        
-        // Auto-remove after 10 seconds
-        setTimeout(() => {
-            if (errorDiv.parentNode) {
-                errorDiv.parentNode.removeChild(errorDiv);
-            }
-        }, 10000);
-    }
-}
-
-// Updates sidebar with geofences
+// Update geofence list
 function updateGeofenceList() {
     const list = document.getElementById("geofenceList");
-    if (!list) {
-        console.error("Geofence list element not found");
-        return;
-    }
-    
-    list.innerHTML = "";
-    
-    if (geofences.length === 0) {
-        list.innerHTML = "<p class='text-gray-500 p-2'>No geofences created yet. Draw a polygon on the map.</p>";
-        return;
-    }
+    list.innerHTML = geofences.length === 0 
+        ? "<p class='text-gray-500 p-2'>No geofences created yet.</p>"
+        : "";
 
-    geofences.forEach((g) => {
+    geofences.forEach(g => {
         const item = document.createElement("li");
         item.classList = "flex justify-between items-center p-2 bg-gray-200 rounded shadow mb-2";
-
         item.innerHTML = `
             <span class="font-medium">${g.name} (${g.business_type})</span>
             <div>
-                <button onclick="toggleGeofence(${g.id})"
-                    class="px-3 py-1 rounded shadow ${g.active ? 'bg-green-500' : 'bg-blue-500'} text-white mr-2">
+                <button onclick="toggleGeofence(${g.id})" class="px-3 py-1 rounded shadow ${g.active ? 'bg-green-500' : 'bg-blue-500'} text-white mr-2">
                     ${g.active ? "Deactivate" : "Activate"}
                 </button>
-                <button onclick="deleteGeofence(${g.id})"
-                    class="bg-red-500 text-white px-3 py-1 rounded shadow">
+                <button onclick="deleteGeofence(${g.id})" class="bg-red-500 text-white px-3 py-1 rounded shadow">
                     Delete
                 </button>
             </div>
@@ -257,69 +411,35 @@ function updateGeofenceList() {
     });
 }
 
-// Activate/deactivate geofences
+// Toggle geofence
 function toggleGeofence(id) {
-    const geofence = geofences.find((g) => g.id === id);
+    const geofence = geofences.find(g => g.id === id);
     if (geofence) {
-        geofence.active = !geofence.active;
-        
-        // Change polygon appearance based on state
-        if (geofence.polygon) {
-            geofence.polygon.setOptions({
-                fillColor: geofence.active ? "#00FF00" : "#FF0000",
-                fillOpacity: geofence.active ? 0.5 : 0.35
-            });
-        }
-        
-        updateGeofenceList();
-        console.log(`Geofence ${geofence.name} ${geofence.active ? 'activated' : 'deactivated'}`);
+        fetch(`/geofences/${id}/toggle`, { method: 'PUT' })
+            .then(response => response.json())
+            .then(() => {
+                geofence.active = !geofence.active;
+                geofence.polygon.setOptions({
+                    fillColor: geofence.active ? "#00FF00" : "#FF0000",
+                    fillOpacity: geofence.active ? 0.5 : 0.35
+                });
+                updateGeofenceList();
+            })
+            .catch(error => console.error("Error toggling geofence:", error));
     }
 }
 
 // Delete geofence
 function deleteGeofence(id) {
-    const geofence = geofences.find(g => g.id === id);
-    if (geofence && geofence.polygon) {
-        geofence.polygon.setMap(null);
-        console.log(`Geofence ${geofence.name} deleted`);
-    }
-    geofences = geofences.filter((g) => g.id !== id);
-    updateGeofenceList();
+    fetch(`/geofences/${id}`, { method: 'DELETE' })
+        .then(response => response.json())
+        .then(() => {
+            const geofence = geofences.find(g => g.id === id);
+            if (geofence && geofence.polygon) geofence.polygon.setMap(null);
+            geofences = geofences.filter(g => g.id !== id);
+            updateGeofenceList();
+        })
+        .catch(error => console.error("Error deleting geofence:", error));
 }
 
-// Test Places API functionality
-function testPlacesAPI() {
-    if (!placesService) {
-        console.error("Places service not initialized for testing");
-        return;
-    }
-    
-    console.log("Testing Places API...");
-    
-    // Simple request to test Places API
-    placesService.findPlaceFromQuery({
-        query: "supermarket",
-        fields: ["name", "formatted_address", "geometry"]
-    }, (results, status) => {
-        console.log("Test Places API status:", status);
-        console.log("Test results:", results);
-        
-        if (status !== google.maps.places.PlacesServiceStatus.OK) {
-            alert(`Places API test failed with status: ${status}. Check console for details.`);
-        }
-    });
-}
-
-// Load the map when the window loads
-window.onload = function() {
-    console.log("Window loaded, initializing map...");
-    initMap();
-    
-    // Add error handler for script loading issues
-    window.gm_authFailure = function() {
-        document.getElementById("map").innerHTML = 
-            "<div class='p-4 bg-red-100 text-red-700'>Google Maps authentication failed. " +
-            "Please check your API key and ensure the Places API is enabled in your Google Cloud Console.</div>";
-        console.error("Google Maps authentication failed");
-    };
-};
+window.onload = initMap;
