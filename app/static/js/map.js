@@ -15,8 +15,7 @@ function initMap() {
     
     if (typeof google === "undefined" || !google.maps) {
         console.error("Google Maps API not loaded properly!");
-        document.getElementById("map").innerHTML = 
-            "<div class='p-4 bg-red-100 text-red-700'>Error loading Google Maps API.</div>";
+        document.getElementById("map").innerHTML = "<div class='p-4 bg-red-100 text-red-700'>Error loading Google Maps API.</div>";
         return;
     }
 
@@ -27,7 +26,7 @@ function initMap() {
     }
 
     map = new google.maps.Map(mapDiv, {
-        center: { lat: 53.7996, lng: -1.5492 }, // Leeds city center
+        center: { lat: 53.7996, lng: -1.5492 },
         zoom: 15,
         mapTypeControl: true,
         fullscreenControl: true,
@@ -80,7 +79,6 @@ function initMap() {
     document.getElementById("businessType").addEventListener("change", updateCompetitorMarkers);
     loadGeofencesFromBackend();
     updateCompetitorMarkers();
-    setInterval(updateAnalyticsList, 5000);
 }
 
 function loadGeofencesFromBackend() {
@@ -263,7 +261,6 @@ function updateGeofenceList() {
         const item = document.createElement("li");
         item.classList = "p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200";
 
-        // Icon based on business type
         const iconClass = {
             supermarket: '🛒',
             fitness_supplement: '💪',
@@ -324,28 +321,6 @@ function deleteGeofence(id) {
             updateGeofenceList();
         })
         .catch(error => console.error("Error deleting geofence:", error));
-}
-
-function updateAnalyticsList() {
-    fetch('/api/patterns')
-        .then(response => response.json())
-        .then(patterns => {
-            const analyticsList = document.getElementById("analyticsList");
-            analyticsList.innerHTML = "";
-
-            const triggerCounts = {};
-            patterns.forEach(p => {
-                triggerCounts[p.geofence_name] = (triggerCounts[p.geofence_name] || 0) + p.visit_count;
-            });
-
-            for (const [name, count] of Object.entries(triggerCounts)) {
-                const item = document.createElement("li");
-                item.classList = "p-2 bg-gray-100 rounded";
-                item.innerHTML = `${name}: Triggered ${count} times`;
-                analyticsList.appendChild(item);
-            }
-        })
-        .catch(error => console.error("Error fetching analytics:", error));
 }
 
 window.onload = initMap;
