@@ -4,25 +4,26 @@ import os
 import requests
 
 LEEDS_BOUNDS = {"min_lat": 53.75, "max_lat": 53.85, "min_lng": -1.65, "max_lng": -1.45}
-BUSINESS_TYPES = ["supermarket", "fitness_supplement", "cafe", "park", "library"]
+BUSINESS_TYPES = ["supermarket", "fitness_supplement", "cafe"]
 DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 API_KEY = "AIzaSyAFplA5X2oW5-rRak8s4HT6JhBuZl53wp8"
 
-def fetch_real_location(query):
+def fetch_real_locations(business_type, num_results=5):
     url = "https://places.googleapis.com/v1/places:searchText"
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": API_KEY,
         "X-Goog-FieldMask": "places.displayName,places.location"
     }
-    body = {"textQuery": query}
+    body = {"textQuery": f"{business_type} in Leeds, UK"}
     response = requests.post(url, headers=headers, json=body)
     if response.ok and response.json().get("places"):
-        place = response.json()["places"][0]
-        return {"lat": place["location"]["latitude"], "lng": place["location"]["longitude"]}
-    return None
+        places = response.json()["places"][:num_results]
+        return [{"lat": p["location"]["latitude"], "lng": p["location"]["longitude"]} for p in places]
+    return [{"lat": random.uniform(LEEDS_BOUNDS["min_lat"], LEEDS_BOUNDS["max_lat"]),
+             "lng": random.uniform(LEEDS_BOUNDS["min_lng"], LEEDS_BOUNDS["max_lng"])}]
 
-MORRISONS_LEEDS = fetch_real_location("Morrisons Leeds UK") or {"lat": 53.7965, "lng": -1.5479}  # Fallback
+REAL_LOCATIONS = {bt: fetch_real_locations(bt) for bt in BUSINESS_TYPES}
 
 def generate_user(id, name):
     schedule = [
@@ -31,18 +32,9 @@ def generate_user(id, name):
             "start_hour": random.randint(8, 18),
             "duration": random.uniform(0.5, 3),
             "location": random.choice(BUSINESS_TYPES),
-            "coords": None  # Random by default
-        } for _ in range(random.randint(2, 4))
+            "coords": random.choice(REAL_LOCATIONS[random.choice(BUSINESS_TYPES)])
+        } for _ in range(random.randint(2, 5))
     ]
-    # Add Morrisons visit for 20% of users
-    if random.random() < 0.2:
-        schedule.append({
-            "day": random.choice(DAYS),
-            "start_hour": random.randint(9, 17),
-            "duration": random.uniform(0.5, 1.5),
-            "location": "supermarket",
-            "coords": MORRISONS_LEEDS
-        })
     
     return {
         "id": id,
@@ -59,4 +51,4 @@ def generate_dataset(filename, num_users, description):
         json.dump(data, f, indent=4)
 
 if __name__ == "__main__":
-    generate_dataset("simulated_users_patterns.json", 50, "Patterns-based simulated users with real locations")
+    generate_dataset("simulated_users_patterns.json", 50, "Patterns-based simulated users with real Places API locations")
