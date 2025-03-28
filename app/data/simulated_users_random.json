@@ -1,0 +1,1467 @@
+{
+    "description": "Random simulated users",
+    "users": [
+        {
+            "id": 1,
+            "name": "User_1",
+            "start_lat": 53.78956443429578,
+            "start_lng": -1.6345406513902654,
+            "schedule": [
+                {
+                    "day": "Saturday",
+                    "start_hour": 11,
+                    "duration": 1.5639864631223903,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 16,
+                    "duration": 1.1798602823498714,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 17,
+                    "duration": 1.1651331131935587,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "name": "User_2",
+            "start_lat": 53.781049259701845,
+            "start_lng": -1.5099445828885691,
+            "schedule": [
+                {
+                    "day": "Sunday",
+                    "start_hour": 12,
+                    "duration": 2.5164128880175407,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 11,
+                    "duration": 1.9407121426532536,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 17,
+                    "duration": 1.3859876274721108,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 12,
+                    "duration": 2.3765761460849237,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "name": "User_3",
+            "start_lat": 53.81679532795286,
+            "start_lng": -1.529222483396512,
+            "schedule": [
+                {
+                    "day": "Friday",
+                    "start_hour": 15,
+                    "duration": 2.006774257962713,
+                    "location": "park"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 8,
+                    "duration": 2.7021340071006317,
+                    "location": "library"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 13,
+                    "duration": 0.6762195462739355,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "name": "User_4",
+            "start_lat": 53.757311405750265,
+            "start_lng": -1.5440032401112507,
+            "schedule": [
+                {
+                    "day": "Thursday",
+                    "start_hour": 14,
+                    "duration": 1.9740131452770715,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 16,
+                    "duration": 1.4555411919363985,
+                    "location": "cafe"
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "name": "User_5",
+            "start_lat": 53.778855804881836,
+            "start_lng": -1.6398024460820062,
+            "schedule": [
+                {
+                    "day": "Friday",
+                    "start_hour": 18,
+                    "duration": 1.9665883644109599,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 13,
+                    "duration": 2.893128840455291,
+                    "location": "supermarket"
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "name": "User_6",
+            "start_lat": 53.826526007247104,
+            "start_lng": -1.622531754621428,
+            "schedule": [
+                {
+                    "day": "Sunday",
+                    "start_hour": 15,
+                    "duration": 2.1566167459377814,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 18,
+                    "duration": 1.6203320601570002,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "name": "User_7",
+            "start_lat": 53.814361765641756,
+            "start_lng": -1.5685629587259533,
+            "schedule": [
+                {
+                    "day": "Saturday",
+                    "start_hour": 15,
+                    "duration": 2.8538247501068006,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 11,
+                    "duration": 2.9328682679853317,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 17,
+                    "duration": 1.7414783924795936,
+                    "location": "cafe"
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "name": "User_8",
+            "start_lat": 53.7874042448131,
+            "start_lng": -1.6297811134696865,
+            "schedule": [
+                {
+                    "day": "Thursday",
+                    "start_hour": 9,
+                    "duration": 1.2310147944574383,
+                    "location": "library"
+                },
+                {
+                    "day": "Sunday",
+                    "start_hour": 8,
+                    "duration": 2.281497173800148,
+                    "location": "park"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 12,
+                    "duration": 2.174741309774536,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 14,
+                    "duration": 0.627369726637562,
+                    "location": "cafe"
+                }
+            ]
+        },
+        {
+            "id": 9,
+            "name": "User_9",
+            "start_lat": 53.8088992239597,
+            "start_lng": -1.5407339691668802,
+            "schedule": [
+                {
+                    "day": "Saturday",
+                    "start_hour": 9,
+                    "duration": 0.8875764394811593,
+                    "location": "park"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 9,
+                    "duration": 2.1524725498009563,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 10,
+            "name": "User_10",
+            "start_lat": 53.77474474392421,
+            "start_lng": -1.4936416045070608,
+            "schedule": [
+                {
+                    "day": "Thursday",
+                    "start_hour": 14,
+                    "duration": 1.9580687681654934,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 15,
+                    "duration": 1.0949376849207242,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 8,
+                    "duration": 2.8750097299797703,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 11,
+            "name": "User_11",
+            "start_lat": 53.83931239061814,
+            "start_lng": -1.5177114020008764,
+            "schedule": [
+                {
+                    "day": "Thursday",
+                    "start_hour": 11,
+                    "duration": 2.5508567776268287,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 8,
+                    "duration": 0.5721436845006557,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 14,
+                    "duration": 2.345990909664046,
+                    "location": "fitness_supplement"
+                }
+            ]
+        },
+        {
+            "id": 12,
+            "name": "User_12",
+            "start_lat": 53.84255934368261,
+            "start_lng": -1.6362311131953127,
+            "schedule": [
+                {
+                    "day": "Wednesday",
+                    "start_hour": 12,
+                    "duration": 1.8336269301179957,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 10,
+                    "duration": 1.072584486650215,
+                    "location": "library"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 13,
+                    "duration": 0.9025958265058338,
+                    "location": "fitness_supplement"
+                }
+            ]
+        },
+        {
+            "id": 13,
+            "name": "User_13",
+            "start_lat": 53.82162347214624,
+            "start_lng": -1.4792610043919563,
+            "schedule": [
+                {
+                    "day": "Tuesday",
+                    "start_hour": 16,
+                    "duration": 2.7749517739924983,
+                    "location": "library"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 11,
+                    "duration": 2.1390284384917084,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 15,
+                    "duration": 1.3924337341963453,
+                    "location": "fitness_supplement"
+                }
+            ]
+        },
+        {
+            "id": 14,
+            "name": "User_14",
+            "start_lat": 53.75146701532058,
+            "start_lng": -1.5533520700152097,
+            "schedule": [
+                {
+                    "day": "Tuesday",
+                    "start_hour": 15,
+                    "duration": 1.1439064905036886,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 9,
+                    "duration": 2.2103492598706085,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 14,
+                    "duration": 2.2237443662717356,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 17,
+                    "duration": 0.8516925731874379,
+                    "location": "park"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 8,
+                    "duration": 1.7111451456350952,
+                    "location": "supermarket"
+                }
+            ]
+        },
+        {
+            "id": 15,
+            "name": "User_15",
+            "start_lat": 53.777948726370276,
+            "start_lng": -1.649263788155723,
+            "schedule": [
+                {
+                    "day": "Thursday",
+                    "start_hour": 10,
+                    "duration": 0.7243864780262397,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 15,
+                    "duration": 0.7581776976623645,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 17,
+                    "duration": 1.9646146082904696,
+                    "location": "park"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 10,
+                    "duration": 2.6645480024606814,
+                    "location": "library"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 18,
+                    "duration": 2.779825350595986,
+                    "location": "park"
+                }
+            ]
+        },
+        {
+            "id": 16,
+            "name": "User_16",
+            "start_lat": 53.77349389992679,
+            "start_lng": -1.4897785123549847,
+            "schedule": [
+                {
+                    "day": "Saturday",
+                    "start_hour": 13,
+                    "duration": 2.8846809216009928,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 10,
+                    "duration": 2.123596982580265,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 12,
+                    "duration": 2.942307074483189,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 14,
+                    "duration": 1.4629719600090971,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 17,
+            "name": "User_17",
+            "start_lat": 53.834186896941056,
+            "start_lng": -1.623070466433536,
+            "schedule": [
+                {
+                    "day": "Thursday",
+                    "start_hour": 12,
+                    "duration": 1.4457210194187264,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 11,
+                    "duration": 1.8349029026938186,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 12,
+                    "duration": 1.0130783283000475,
+                    "location": "park"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 8,
+                    "duration": 1.5486336405831176,
+                    "location": "fitness_supplement"
+                }
+            ]
+        },
+        {
+            "id": 18,
+            "name": "User_18",
+            "start_lat": 53.82847199147947,
+            "start_lng": -1.5903550504284556,
+            "schedule": [
+                {
+                    "day": "Sunday",
+                    "start_hour": 13,
+                    "duration": 2.88324687572721,
+                    "location": "library"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 17,
+                    "duration": 1.0986592494758736,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 16,
+                    "duration": 2.0968143059155464,
+                    "location": "park"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 17,
+                    "duration": 1.5628736916066743,
+                    "location": "supermarket"
+                }
+            ]
+        },
+        {
+            "id": 19,
+            "name": "User_19",
+            "start_lat": 53.76923838409996,
+            "start_lng": -1.4740036481368533,
+            "schedule": [
+                {
+                    "day": "Saturday",
+                    "start_hour": 14,
+                    "duration": 0.6039001344710411,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 11,
+                    "duration": 2.7690323094873643,
+                    "location": "park"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 9,
+                    "duration": 1.3397789328647243,
+                    "location": "supermarket"
+                }
+            ]
+        },
+        {
+            "id": 20,
+            "name": "User_20",
+            "start_lat": 53.805492104965,
+            "start_lng": -1.45225489718114,
+            "schedule": [
+                {
+                    "day": "Thursday",
+                    "start_hour": 9,
+                    "duration": 0.6000063530668699,
+                    "location": "library"
+                },
+                {
+                    "day": "Sunday",
+                    "start_hour": 10,
+                    "duration": 1.5111516977126245,
+                    "location": "park"
+                }
+            ]
+        },
+        {
+            "id": 21,
+            "name": "User_21",
+            "start_lat": 53.8430599446796,
+            "start_lng": -1.5732128636046587,
+            "schedule": [
+                {
+                    "day": "Thursday",
+                    "start_hour": 17,
+                    "duration": 1.7441856642819737,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 10,
+                    "duration": 1.063894217787909,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 22,
+            "name": "User_22",
+            "start_lat": 53.79633505508069,
+            "start_lng": -1.558495930427993,
+            "schedule": [
+                {
+                    "day": "Sunday",
+                    "start_hour": 14,
+                    "duration": 1.8840186481343306,
+                    "location": "library"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 10,
+                    "duration": 1.0350647923376595,
+                    "location": "park"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 9,
+                    "duration": 1.9093892599044724,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 10,
+                    "duration": 2.703686074366725,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 9,
+                    "duration": 1.0637063337294645,
+                    "location": "park"
+                }
+            ]
+        },
+        {
+            "id": 23,
+            "name": "User_23",
+            "start_lat": 53.768108134381755,
+            "start_lng": -1.5672331084933109,
+            "schedule": [
+                {
+                    "day": "Tuesday",
+                    "start_hour": 12,
+                    "duration": 2.6569387459587333,
+                    "location": "park"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 10,
+                    "duration": 1.3893100825917843,
+                    "location": "fitness_supplement"
+                }
+            ]
+        },
+        {
+            "id": 24,
+            "name": "User_24",
+            "start_lat": 53.766161973565126,
+            "start_lng": -1.6255838080571139,
+            "schedule": [
+                {
+                    "day": "Sunday",
+                    "start_hour": 11,
+                    "duration": 0.6326103199379778,
+                    "location": "library"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 14,
+                    "duration": 2.328166064809091,
+                    "location": "library"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 11,
+                    "duration": 1.5920757079544663,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 18,
+                    "duration": 1.231978396261811,
+                    "location": "park"
+                },
+                {
+                    "day": "Sunday",
+                    "start_hour": 8,
+                    "duration": 0.9757428951811484,
+                    "location": "fitness_supplement"
+                }
+            ]
+        },
+        {
+            "id": 25,
+            "name": "User_25",
+            "start_lat": 53.82645653415499,
+            "start_lng": -1.6355983191511911,
+            "schedule": [
+                {
+                    "day": "Thursday",
+                    "start_hour": 15,
+                    "duration": 1.7546122402164,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 17,
+                    "duration": 2.468072925760558,
+                    "location": "supermarket"
+                }
+            ]
+        },
+        {
+            "id": 26,
+            "name": "User_26",
+            "start_lat": 53.78449536588301,
+            "start_lng": -1.4715698769554004,
+            "schedule": [
+                {
+                    "day": "Thursday",
+                    "start_hour": 12,
+                    "duration": 0.7520101582961792,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 8,
+                    "duration": 1.763270431443337,
+                    "location": "park"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 10,
+                    "duration": 2.5222269577597487,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 12,
+                    "duration": 2.7756054025868027,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 18,
+                    "duration": 0.8163505688277011,
+                    "location": "supermarket"
+                }
+            ]
+        },
+        {
+            "id": 27,
+            "name": "User_27",
+            "start_lat": 53.796481573279245,
+            "start_lng": -1.53233591236375,
+            "schedule": [
+                {
+                    "day": "Sunday",
+                    "start_hour": 10,
+                    "duration": 0.6207005786510973,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 8,
+                    "duration": 1.0393150609857489,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 28,
+            "name": "User_28",
+            "start_lat": 53.783252226335065,
+            "start_lng": -1.6477126700672131,
+            "schedule": [
+                {
+                    "day": "Sunday",
+                    "start_hour": 17,
+                    "duration": 0.930490331287495,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 13,
+                    "duration": 1.9461586738253676,
+                    "location": "park"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 8,
+                    "duration": 2.019703380839773,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 16,
+                    "duration": 2.4681928835972817,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 13,
+                    "duration": 2.52458717903751,
+                    "location": "supermarket"
+                }
+            ]
+        },
+        {
+            "id": 29,
+            "name": "User_29",
+            "start_lat": 53.80191812551352,
+            "start_lng": -1.5460096715044198,
+            "schedule": [
+                {
+                    "day": "Sunday",
+                    "start_hour": 16,
+                    "duration": 0.5080477256397928,
+                    "location": "library"
+                },
+                {
+                    "day": "Sunday",
+                    "start_hour": 14,
+                    "duration": 1.1732606081832335,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 30,
+            "name": "User_30",
+            "start_lat": 53.838763218501384,
+            "start_lng": -1.4733211808107152,
+            "schedule": [
+                {
+                    "day": "Saturday",
+                    "start_hour": 16,
+                    "duration": 2.6166294479356202,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 10,
+                    "duration": 1.613097027181095,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 14,
+                    "duration": 1.705548743423851,
+                    "location": "park"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 14,
+                    "duration": 2.860974195072822,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 18,
+                    "duration": 0.7564761011268735,
+                    "location": "cafe"
+                }
+            ]
+        },
+        {
+            "id": 31,
+            "name": "User_31",
+            "start_lat": 53.79460218654493,
+            "start_lng": -1.5028264434242558,
+            "schedule": [
+                {
+                    "day": "Saturday",
+                    "start_hour": 18,
+                    "duration": 0.7295506388045926,
+                    "location": "park"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 12,
+                    "duration": 0.8649046277307335,
+                    "location": "park"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 12,
+                    "duration": 2.0764057595147465,
+                    "location": "cafe"
+                }
+            ]
+        },
+        {
+            "id": 32,
+            "name": "User_32",
+            "start_lat": 53.770948378085016,
+            "start_lng": -1.4979975175190214,
+            "schedule": [
+                {
+                    "day": "Thursday",
+                    "start_hour": 10,
+                    "duration": 2.5231972813538115,
+                    "location": "park"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 10,
+                    "duration": 2.6536441452566986,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 9,
+                    "duration": 2.9471042404455288,
+                    "location": "fitness_supplement"
+                }
+            ]
+        },
+        {
+            "id": 33,
+            "name": "User_33",
+            "start_lat": 53.80136424458318,
+            "start_lng": -1.6171014068664957,
+            "schedule": [
+                {
+                    "day": "Tuesday",
+                    "start_hour": 12,
+                    "duration": 1.2614536073381304,
+                    "location": "library"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 11,
+                    "duration": 0.9649383078444955,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 10,
+                    "duration": 1.1802737557201946,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 10,
+                    "duration": 2.8352718288027505,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 34,
+            "name": "User_34",
+            "start_lat": 53.794909707704186,
+            "start_lng": -1.540260965224139,
+            "schedule": [
+                {
+                    "day": "Tuesday",
+                    "start_hour": 13,
+                    "duration": 2.953461321230471,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 18,
+                    "duration": 2.2408846184232383,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 18,
+                    "duration": 1.310310374928548,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 8,
+                    "duration": 1.8957741390551996,
+                    "location": "park"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 12,
+                    "duration": 1.6805808846710208,
+                    "location": "fitness_supplement"
+                }
+            ]
+        },
+        {
+            "id": 35,
+            "name": "User_35",
+            "start_lat": 53.76752406283824,
+            "start_lng": -1.644926799974295,
+            "schedule": [
+                {
+                    "day": "Wednesday",
+                    "start_hour": 15,
+                    "duration": 1.0699192406396156,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 8,
+                    "duration": 1.2498849777642458,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 15,
+                    "duration": 1.8826242200917025,
+                    "location": "supermarket"
+                }
+            ]
+        },
+        {
+            "id": 36,
+            "name": "User_36",
+            "start_lat": 53.76480947134333,
+            "start_lng": -1.6094027777019608,
+            "schedule": [
+                {
+                    "day": "Tuesday",
+                    "start_hour": 17,
+                    "duration": 1.3572588862020658,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 10,
+                    "duration": 2.6272926818758653,
+                    "location": "library"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 9,
+                    "duration": 2.760615173750626,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 37,
+            "name": "User_37",
+            "start_lat": 53.80946869475457,
+            "start_lng": -1.6128716440066666,
+            "schedule": [
+                {
+                    "day": "Monday",
+                    "start_hour": 9,
+                    "duration": 2.036627894413691,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Sunday",
+                    "start_hour": 15,
+                    "duration": 0.6584798704328747,
+                    "location": "park"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 13,
+                    "duration": 2.1093082231981133,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 14,
+                    "duration": 1.3673485070844513,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 38,
+            "name": "User_38",
+            "start_lat": 53.76060885364429,
+            "start_lng": -1.455747165846345,
+            "schedule": [
+                {
+                    "day": "Friday",
+                    "start_hour": 9,
+                    "duration": 1.2389941976372947,
+                    "location": "library"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 12,
+                    "duration": 1.6912965907108575,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 10,
+                    "duration": 1.187653175282347,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 15,
+                    "duration": 2.559733319968291,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 39,
+            "name": "User_39",
+            "start_lat": 53.81400769817293,
+            "start_lng": -1.5415081721293002,
+            "schedule": [
+                {
+                    "day": "Saturday",
+                    "start_hour": 11,
+                    "duration": 1.450549548071151,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 9,
+                    "duration": 2.631732893100218,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 13,
+                    "duration": 2.0383179286061006,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 13,
+                    "duration": 2.9889146028731624,
+                    "location": "cafe"
+                }
+            ]
+        },
+        {
+            "id": 40,
+            "name": "User_40",
+            "start_lat": 53.81660677157129,
+            "start_lng": -1.5507810265041198,
+            "schedule": [
+                {
+                    "day": "Friday",
+                    "start_hour": 17,
+                    "duration": 2.192057437884146,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 17,
+                    "duration": 0.9349717667323938,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 11,
+                    "duration": 2.667813203367634,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 41,
+            "name": "User_41",
+            "start_lat": 53.816634008708185,
+            "start_lng": -1.5815598035921175,
+            "schedule": [
+                {
+                    "day": "Friday",
+                    "start_hour": 16,
+                    "duration": 0.9158656216717987,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 10,
+                    "duration": 2.886853351196938,
+                    "location": "park"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 10,
+                    "duration": 1.6957718829583657,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 11,
+                    "duration": 0.8361969953761792,
+                    "location": "library"
+                }
+            ]
+        },
+        {
+            "id": 42,
+            "name": "User_42",
+            "start_lat": 53.820351382499595,
+            "start_lng": -1.4784399517433946,
+            "schedule": [
+                {
+                    "day": "Monday",
+                    "start_hour": 8,
+                    "duration": 2.878272690838023,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 17,
+                    "duration": 1.9632695242100384,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 13,
+                    "duration": 1.8007134908562459,
+                    "location": "park"
+                },
+                {
+                    "day": "Sunday",
+                    "start_hour": 9,
+                    "duration": 2.6602655444597305,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 13,
+                    "duration": 1.5109032977682906,
+                    "location": "park"
+                }
+            ]
+        },
+        {
+            "id": 43,
+            "name": "User_43",
+            "start_lat": 53.84027286513444,
+            "start_lng": -1.5858280465445602,
+            "schedule": [
+                {
+                    "day": "Saturday",
+                    "start_hour": 10,
+                    "duration": 2.0066112558414826,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 12,
+                    "duration": 2.20904213223954,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 9,
+                    "duration": 0.7169430168885567,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 10,
+                    "duration": 2.6282513931886333,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Sunday",
+                    "start_hour": 17,
+                    "duration": 1.893458475234014,
+                    "location": "fitness_supplement"
+                }
+            ]
+        },
+        {
+            "id": 44,
+            "name": "User_44",
+            "start_lat": 53.7660449119301,
+            "start_lng": -1.56448100715693,
+            "schedule": [
+                {
+                    "day": "Saturday",
+                    "start_hour": 14,
+                    "duration": 2.6828411669962007,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 15,
+                    "duration": 1.871127512230638,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 17,
+                    "duration": 2.295154290168232,
+                    "location": "park"
+                },
+                {
+                    "day": "Sunday",
+                    "start_hour": 12,
+                    "duration": 2.1391663196940307,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 15,
+                    "duration": 1.8244202543769992,
+                    "location": "supermarket"
+                }
+            ]
+        },
+        {
+            "id": 45,
+            "name": "User_45",
+            "start_lat": 53.755147588422474,
+            "start_lng": -1.4761331672211964,
+            "schedule": [
+                {
+                    "day": "Friday",
+                    "start_hour": 17,
+                    "duration": 1.3160379990425666,
+                    "location": "park"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 15,
+                    "duration": 0.54404195646107,
+                    "location": "park"
+                }
+            ]
+        },
+        {
+            "id": 46,
+            "name": "User_46",
+            "start_lat": 53.78684989427277,
+            "start_lng": -1.5220606760511015,
+            "schedule": [
+                {
+                    "day": "Wednesday",
+                    "start_hour": 18,
+                    "duration": 1.2546393168915457,
+                    "location": "library"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 12,
+                    "duration": 1.0720014703082716,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 9,
+                    "duration": 0.9336095918783414,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 14,
+                    "duration": 2.5953773289996067,
+                    "location": "cafe"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 10,
+                    "duration": 1.0135065919169712,
+                    "location": "cafe"
+                }
+            ]
+        },
+        {
+            "id": 47,
+            "name": "User_47",
+            "start_lat": 53.83398614491804,
+            "start_lng": -1.5720580506997297,
+            "schedule": [
+                {
+                    "day": "Tuesday",
+                    "start_hour": 18,
+                    "duration": 2.819313668510859,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Wednesday",
+                    "start_hour": 15,
+                    "duration": 1.2952541107060973,
+                    "location": "library"
+                },
+                {
+                    "day": "Tuesday",
+                    "start_hour": 17,
+                    "duration": 1.6801362136392524,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 18,
+                    "duration": 2.027982344417249,
+                    "location": "library"
+                },
+                {
+                    "day": "Friday",
+                    "start_hour": 10,
+                    "duration": 0.8736734200526803,
+                    "location": "fitness_supplement"
+                }
+            ]
+        },
+        {
+            "id": 48,
+            "name": "User_48",
+            "start_lat": 53.826375021548586,
+            "start_lng": -1.6136538851340836,
+            "schedule": [
+                {
+                    "day": "Monday",
+                    "start_hour": 14,
+                    "duration": 2.535913983455148,
+                    "location": "park"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 8,
+                    "duration": 2.9358242269741472,
+                    "location": "library"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 9,
+                    "duration": 2.6935281385810046,
+                    "location": "park"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 9,
+                    "duration": 2.729827252074437,
+                    "location": "park"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 10,
+                    "duration": 2.0813840080303363,
+                    "location": "park"
+                }
+            ]
+        },
+        {
+            "id": 49,
+            "name": "User_49",
+            "start_lat": 53.754424826889164,
+            "start_lng": -1.5695761172372853,
+            "schedule": [
+                {
+                    "day": "Tuesday",
+                    "start_hour": 14,
+                    "duration": 2.757842402332037,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Sunday",
+                    "start_hour": 18,
+                    "duration": 1.4989722677612642,
+                    "location": "fitness_supplement"
+                },
+                {
+                    "day": "Monday",
+                    "start_hour": 12,
+                    "duration": 1.1075684310460097,
+                    "location": "supermarket"
+                },
+                {
+                    "day": "Thursday",
+                    "start_hour": 18,
+                    "duration": 1.2676426366043843,
+                    "location": "cafe"
+                }
+            ]
+        },
+        {
+            "id": 50,
+            "name": "User_50",
+            "start_lat": 53.77520994453098,
+            "start_lng": -1.6488981291864016,
+            "schedule": [
+                {
+                    "day": "Sunday",
+                    "start_hour": 8,
+                    "duration": 2.4351875214957057,
+                    "location": "park"
+                },
+                {
+                    "day": "Saturday",
+                    "start_hour": 9,
+                    "duration": 2.3321884175313183,
+                    "location": "cafe"
+                }
+            ]
+        }
+    ]
+}

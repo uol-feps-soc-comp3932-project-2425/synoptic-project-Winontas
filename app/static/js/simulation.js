@@ -4,7 +4,13 @@ let simulationInterval = null;
 let analyticsChart;
 
 function initAnalyticsChart() {
-    const ctx = document.getElementById('analyticsChart').getContext('2d');
+    const canvas = document.getElementById('analyticsChart');
+    if (!canvas) {
+        console.error("Analytics chart canvas not found in DOM!");
+        setTimeout(initAnalyticsChart, 100);
+        return;
+    }
+    const ctx = canvas.getContext('2d');
     analyticsChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -17,7 +23,8 @@ function initAnalyticsChart() {
             scales: {
                 x: { title: { display: true, text: 'Time/Day' } },
                 y: { title: { display: true, text: 'Triggers' }, beginAtZero: true }
-            }
+            },
+            animation: false
         }
     });
 }
@@ -66,21 +73,9 @@ function simulateUserMovement() {
             currentHour < s.start_hour + s.duration
         );
 
-        if (scheduledVisit) {
-            if (scheduledVisit.coords) {
-                targetLat = scheduledVisit.coords.lat;
-                targetLng = scheduledVisit.coords.lng;
-            } else {
-                const targetGeofence = geofences.find(g => g.business_type === scheduledVisit.location && g.active);
-                if (targetGeofence) {
-                    const centroid = calculateCentroid(targetGeofence.coordinates);
-                    targetLat = centroid.lat;
-                    targetLng = centroid.lng;
-                } else {
-                    targetLat = randomInRange(53.75, 53.85);
-                    targetLng = randomInRange(-1.65, -1.45);
-                }
-            }
+        if (scheduledVisit && scheduledVisit.coords) {
+            targetLat = scheduledVisit.coords.lat;
+            targetLng = scheduledVisit.coords.lng;
         } else {
             targetLat = user.lat + (Math.random() - 0.5) * 0.005;
             targetLng = user.lng + (Math.random() - 0.5) * 0.005;
@@ -115,16 +110,6 @@ function simulateUserMovement() {
     });
 }
 
-function calculateCentroid(coords) {
-    let lat = 0, lng = 0;
-    coords.forEach(c => { lat += c.lat; lng += c.lng; });
-    return { lat: lat / coords.length, lng: lng / coords.length };
-}
-
-function randomInRange(min, max) {
-    return min + Math.random() * (max - min);
-}
-
 function saveTrackingData(user, geofence, eventType, duration = null) {
     fetch('/api/save_tracking', {
         method: 'POST',
@@ -156,7 +141,7 @@ function toggleSimulation() {
                 currentSimulatedDate.setHours(currentSimulatedDate.getHours() + 1);
                 simulateUserMovement();
                 updateAnalyticsList();
-            }, 5000);
+            }, 357);
             button.textContent = "Stop Simulation";
             button.classList.remove("bg-purple-600", "hover:bg-purple-700");
             button.classList.add("bg-red-600", "hover:bg-red-700");
@@ -197,10 +182,9 @@ function updateAnalyticsList() {
 
             analyticsChart.data.labels = labels;
             analyticsChart.data.datasets = datasets;
-            analyticsChart.update();
+            analyticsChart.update('none');
         })
         .catch(error => console.error("Error fetching analytics:", error));
 }
 
-// Initialize chart when simulation.js loads
 initAnalyticsChart();

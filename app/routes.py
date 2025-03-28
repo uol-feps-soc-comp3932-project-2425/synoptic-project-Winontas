@@ -82,11 +82,27 @@ def save_tracking():
         geofence_name=data['geofence_name'],
         event_type=data['event_type'],
         timestamp=datetime.fromisoformat(data['timestamp']),
-        duration=data.get('duration')
+        duration=data.get('duration'),
+        simulated_hour=data.get('simulated_hour')  # Add simulated_hour
     )
     db.session.add(new_tracking)
     db.session.commit()
-    return jsonify({"message": "Tracking data saved"}), 201
+    return jsonify({"message": "Tracking data saved", "id": new_tracking.id}), 201
+
+@geofence_bp.route('/api/tracking', methods=['GET'])
+def get_tracking():
+    tracking_entries = Tracking.query.all()
+    return jsonify([{
+        "id": t.id,
+        "user_id": t.user_id,
+        "user_name": t.user_name,
+        "geofence_id": t.geofence_id,
+        "geofence_name": t.geofence_name,
+        "event_type": t.event_type,
+        "timestamp": t.timestamp.isoformat(),
+        "duration": t.duration,
+        "simulated_hour": t.simulated_hour  # Include simulated_hour
+    } for t in tracking_entries])
 
 @geofence_bp.route('/api/patterns', methods=['GET'])
 def get_patterns():
@@ -136,3 +152,11 @@ def get_simulated_users():
         return jsonify(data)
     except FileNotFoundError:
         return jsonify({"error": "Dataset not found"}), 404
+    
+@geofence_bp.route('/simulate')
+def simulate():
+    return render_template('simulate.html')
+
+@geofence_bp.route('/test')
+def test():
+    return render_template('test.html')
