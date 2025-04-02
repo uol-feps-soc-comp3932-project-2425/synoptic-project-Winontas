@@ -1,190 +1,199 @@
-let simulatedUsers = [];
-let currentSimulatedDate = new Date("2025-03-24T00:00:00");
-let simulationInterval = null;
-let analyticsChart;
+let simulationMap;
+let userMarkers = [];
+let simulationResults = [];
+let currentView = 'map';
+let chartInstance = null; // Store the chart instance globally
 
-function initAnalyticsChart() {
-    const canvas = document.getElementById('analyticsChart');
-    if (!canvas) {
-        console.error("Analytics chart canvas not found in DOM!");
-        setTimeout(initAnalyticsChart, 100);
-        return;
-    }
-    const ctx = canvas.getContext('2d');
-    analyticsChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: []
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: { title: { display: true, text: 'Time/Day' } },
-                y: { title: { display: true, text: 'Triggers' }, beginAtZero: true }
-            },
-            animation: false
-        }
+function initSimulationMap() {
+    simulationMap = new google.maps.Map(document.getElementById("mapView"), {
+        center: { lat: 53.7996, lng: -1.5492 },
+        zoom: 13,
+        mapTypeControl: true,
+        fullscreenControl: true,
     });
-}
 
-async function initializeSimulatedUsers(dataset = 'patterns') {
-    try {
-        const response = await fetch(`/api/simulated_users?dataset=${dataset}`);
-        if (!response.ok) throw new Error(`Failed to fetch users: ${response.status}`);
-        const data = await response.json();
-        
-        simulatedUsers = data.users.map(user => ({
-            id: user.id,
-            name: user.name,
-            lat: user.start_lat,
-            lng: user.start_lng,
-            marker: new google.maps.Marker({
-                position: { lat: user.start_lat, lng: user.start_lng },
-                map: map,
-                title: user.name,
-                icon: {
-                    url: 'https://maps.google.com/mapfiles/kml/shapes/man.png',
-                    scaledSize: new google.maps.Size(32, 32)
-                }
-            }),
-            lastUpdate: null,
-            insideGeofences: {},
-            schedule: user.schedule || []
-        }));
-        console.log(`Loaded ${simulatedUsers.length} users from ${data.description}`);
-    } catch (error) {
-        console.error("Error initializing simulated users:", error);
-        simulatedUsers = [];
-    }
-}
-
-function simulateUserMovement() {
-    const dayOfWeek = currentSimulatedDate.toLocaleString('en-US', { weekday: 'long' });
-    const currentHour = currentSimulatedDate.getHours() + currentSimulatedDate.getMinutes() / 60;
-
-    simulatedUsers.forEach(user => {
-        let targetLat, targetLng;
-
-        const scheduledVisit = user.schedule.find(s => 
-            s.day === dayOfWeek && 
-            currentHour >= s.start_hour && 
-            currentHour < s.start_hour + s.duration
-        );
-
-        if (scheduledVisit && scheduledVisit.coords) {
-            targetLat = scheduledVisit.coords.lat;
-            targetLng = scheduledVisit.coords.lng;
-        } else {
-            targetLat = user.lat + (Math.random() - 0.5) * 0.005;
-            targetLng = user.lng + (Math.random() - 0.5) * 0.005;
-        }
-
-        user.lat += (targetLat - user.lat) * 0.1;
-        user.lng += (targetLng - user.lng) * 0.1;
-        user.marker.setPosition({ lat: user.lat, lng: user.lng });
-        user.lastUpdate = new Date(currentSimulatedDate);
-
-        geofences.forEach(geofence => {
-            if (!geofence.active) return;
-
-            const isInside = google.maps.geometry.poly.containsLocation(
-                new google.maps.LatLng(user.lat, user.lng),
-                geofence.polygon
-            );
-
-            const geofenceKey = geofence.id;
-            if (isInside && !user.insideGeofences[geofenceKey]) {
-                user.insideGeofences[geofenceKey] = { entryTime: new Date(currentSimulatedDate) };
-                console.log(`${user.name} entered ${geofence.name}`);
-                saveTrackingData(user, geofence, "entry");
-            } else if (!isInside && user.insideGeofences[geofenceKey]) {
-                const entryTime = user.insideGeofences[geofenceKey].entryTime;
-                const duration = (currentSimulatedDate - entryTime) / 1000 / 60;
-                delete user.insideGeofences[geofenceKey];
-                console.log(`${user.name} exited ${geofence.name}, Duration: ${duration.toFixed(1)} min`);
-                saveTrackingData(user, geofence, "exit", duration);
-            }
-        });
-    });
-}
-
-function saveTrackingData(user, geofence, eventType, duration = null) {
-    fetch('/api/save_tracking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            user_id: user.id,
-            user_name: user.name,
-            geofence_id: geofence.id,
-            geofence_name: geofence.name,
-            event_type: eventType,
-            timestamp: currentSimulatedDate.toISOString(),
-            duration: duration
-        })
-    }).catch(error => console.error("Error saving tracking:", error));
-}
-
-function toggleSimulation() {
-    const button = document.getElementById("toggleSimulation");
-    if (simulationInterval) {
-        clearInterval(simulationInterval);
-        simulationInterval = null;
-        button.textContent = "Start Simulation";
-        button.classList.remove("bg-red-600", "hover:bg-red-700");
-        button.classList.add("bg-purple-600", "hover:bg-purple-700");
-        simulatedUsers.forEach(user => user.marker.setMap(null));
-    } else {
-        initializeSimulatedUsers('patterns').then(() => {
-            simulationInterval = setInterval(() => {
-                currentSimulatedDate.setHours(currentSimulatedDate.getHours() + 1);
-                simulateUserMovement();
-                updateAnalyticsList();
-            }, 357);
-            button.textContent = "Stop Simulation";
-            button.classList.remove("bg-purple-600", "hover:bg-purple-700");
-            button.classList.add("bg-red-600", "hover:bg-red-700");
-        });
-    }
-}
-
-function updateAnalyticsList() {
-    fetch('/api/patterns')
+    fetch('/geofences')
         .then(response => response.json())
-        .then(patterns => {
-            const triggerData = {};
-            patterns.forEach(p => {
-                const timestamp = new Date(p.timestamp);
-                const dayHour = `${timestamp.toLocaleDateString('en-US', { weekday: 'short' })} ${timestamp.getHours()}:00`;
-                if (!triggerData[p.geofence_name]) triggerData[p.geofence_name] = {};
-                triggerData[p.geofence_name][dayHour] = (triggerData[p.geofence_name][dayHour] || 0) + p.visit_count;
-            });
-
-            const labels = [];
-            const datasets = [];
-            const allTimes = new Set();
-
-            Object.keys(triggerData).forEach(geofence => {
-                Object.keys(triggerData[geofence]).forEach(time => allTimes.add(time));
-            });
-            labels.push(...Array.from(allTimes).sort());
-
-            Object.keys(triggerData).forEach(geofence => {
-                const data = labels.map(time => triggerData[geofence][time] || 0);
-                datasets.push({
-                    label: geofence,
-                    data: data,
-                    borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
-                    fill: false
+        .then(data => {
+            data.forEach(g => {
+                new google.maps.Polygon({
+                    paths: g.coordinates,
+                    fillColor: g.active ? "#00FF00" : "#FF0000",
+                    fillOpacity: g.active ? 0.5 : 0.35,
+                    strokeWeight: 2,
+                    clickable: true,
+                    editable: false,
+                    draggable: false,
+                    map: simulationMap
                 });
             });
-
-            analyticsChart.data.labels = labels;
-            analyticsChart.data.datasets = datasets;
-            analyticsChart.update('none');
         })
-        .catch(error => console.error("Error fetching analytics:", error));
+        .catch(error => console.error("Error loading geofences:", error));
+
+    document.getElementById("runSimulation").addEventListener("click", runSimulation);
+    document.getElementById("toggleView").addEventListener("click", toggleView);
+    document.getElementById("filterType").addEventListener("change", updateFilterOptions);
+    document.getElementById("filterValue").addEventListener("change", filterResults);
 }
 
-initAnalyticsChart();
+function toggleView() {
+    const mapView = document.getElementById("mapView");
+    const resultsView = document.getElementById("resultsView");
+    const toggleButton = document.getElementById("toggleView");
+
+    if (currentView === 'map') {
+        mapView.classList.add("hidden");
+        resultsView.classList.remove("hidden");
+        toggleButton.textContent = "Show Map";
+        currentView = 'results';
+    } else {
+        mapView.classList.remove("hidden");
+        resultsView.classList.add("hidden");
+        toggleButton.textContent = "Show Results";
+        currentView = 'map';
+    }
+}
+
+async function runSimulation() {
+    const numUsers = parseInt(document.getElementById("numUsers").value);
+    const numWeeks = parseInt(document.getElementById("numWeeks").value);
+
+    userMarkers.forEach(marker => marker.setMap(null));
+    userMarkers = [];
+    simulationResults = [];
+    document.getElementById("simulationResults").innerHTML = "";
+
+    const response = await fetch('/api/run_simulation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ num_users: numUsers, num_weeks: numWeeks })
+    });
+    const result = await response.json();
+
+    if (result.error) {
+        alert(result.error);
+        return;
+    }
+
+    simulationResults = result.triggers;
+
+    result.users.forEach((user, index) => {
+        const color = `hsl(${index * 360 / numUsers}, 70%, 50%)`;
+        const homeMarker = new google.maps.Marker({
+            position: user.home,
+            map: simulationMap,
+            icon: { url: 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png', scaledSize: new google.maps.Size(32, 32) },
+            title: `${user.name}'s Home`
+        });
+        userMarkers.push(homeMarker);
+
+        user.movements.forEach(movement => {
+            const path = new google.maps.Polyline({
+                path: [movement.from, movement.to],
+                geodesic: true,
+                strokeColor: color,
+                strokeOpacity: 0.5,
+                strokeWeight: 2,
+                map: simulationMap
+            });
+        });
+    });
+
+    displayResults(simulationResults);
+    updatePatternChart(simulationResults, numUsers);
+}
+
+function updateFilterOptions() {
+    const filterType = document.getElementById("filterType").value;
+    const filterValue = document.getElementById("filterValue");
+    filterValue.innerHTML = '<option value="all">All</option>';
+    filterValue.disabled = filterType === "all";
+
+    if (filterType === "user") {
+        const users = [...new Set(simulationResults.map(r => r.user_name))];
+        users.forEach(user => {
+            const option = document.createElement("option");
+            option.value = user;
+            option.text = user;
+            filterValue.appendChild(option);
+        });
+    } else if (filterType === "geofence") {
+        const geofences = [...new Set(simulationResults.map(r => r.geofence_name))];
+        geofences.forEach(geofence => {
+            const option = document.createElement("option");
+            option.value = geofence;
+            option.text = geofence;
+            filterValue.appendChild(option);
+        });
+    }
+    filterResults();
+}
+
+function filterResults() {
+    const filterType = document.getElementById("filterType").value;
+    const filterValue = document.getElementById("filterValue").value;
+    let filteredResults = simulationResults;
+
+    if (filterType === "user" && filterValue !== "all") {
+        filteredResults = simulationResults.filter(r => r.user_name === filterValue);
+    } else if (filterType === "geofence" && filterValue !== "all") {
+        filteredResults = simulationResults.filter(r => r.geofence_name === filterValue);
+    }
+
+    displayResults(filteredResults);
+    updatePatternChart(filteredResults, null); // Pass filtered results to update chart
+}
+
+function displayResults(results) {
+    const resultsDiv = document.getElementById("simulationResults");
+    resultsDiv.innerHTML = "";
+    results.forEach(trigger => {
+        const div = document.createElement("div");
+        div.className = "p-2 bg-gray-50 rounded-md text-sm";
+        div.innerHTML = `${trigger.user_name} ${trigger.event_type} ${trigger.geofence_name} at ${new Date(trigger.timestamp).toLocaleString()}`;
+        resultsDiv.appendChild(div);
+    });
+}
+
+async function updatePatternChart(results, numUsers) {
+    // Destroy existing chart instance if it exists
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+
+    const response = await fetch('/api/patterns');
+    let patterns = await response.json();
+
+    // Filter patterns to match the current filtered results
+    const filteredUserIds = [...new Set(results.map(r => r.user_id))];
+    const filteredGeofenceIds = [...new Set(results.map(r => r.geofence_id))];
+    patterns = patterns.filter(p => 
+        filteredUserIds.includes(p.user_id) && filteredGeofenceIds.includes(p.geofence_id)
+    );
+
+    const ctx = document.getElementById("patternChart").getContext("2d");
+    chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: patterns.map(p => `${p.user_name} - ${p.geofence_name} (${p.day_of_week} ${p.hour}:00)`),
+            datasets: [{
+                label: 'Visit Count',
+                data: patterns.map(p => p.visit_count),
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Visits' } },
+                x: { title: { display: true, text: 'Patterns' } }
+            },
+            plugins: { legend: { display: false } },
+            barThickness: numUsers ? Math.max(10, 50 / Math.sqrt(numUsers)) : 20, // Default thickness when filtered
+            maintainAspectRatio: false
+        }
+    });
+}
+
+window.onload = initSimulationMap;
