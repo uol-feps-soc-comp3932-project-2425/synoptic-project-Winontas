@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify, render_template
 from app import db
 from app.models import Geofence, Tracking
 from app.data.competitors import competitor_locations
-from app.simulation import run_simulation  # Import simulation logic
 import json
 from datetime import datetime
 import os
