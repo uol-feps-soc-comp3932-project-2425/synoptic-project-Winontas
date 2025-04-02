@@ -8,7 +8,6 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAFplA5X2oW5-rRak8s4HT6JhBuZl53wp8&libraries=places,drawing" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/simulation.js') }}"></script>
 </head>
 <body class="bg-gray-100 flex flex-col h-screen">
     <div class="flex flex-1 overflow-hidden">
@@ -21,14 +20,9 @@
                 <option value="fitness_supplement">Fitness Supplement</option>
                 <option value="cafe">Café</option>
             </select>
-            <button id="toggleSimulation" class="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors duration-200 mb-6" onclick="toggleSimulation()">Start Simulation</button>
             <ul id="geofenceList" class="space-y-3"></ul>
         </aside>
         <div id="map" class="w-3/4 h-[70vh]"></div>
-    </div>
-    <div class="p-6 bg-white shadow-lg h-[30vh] overflow-y-auto">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Geofence Analytics</h2>
-        <canvas id="analyticsChart" class="w-full h-full"></canvas>
     </div>
 </body>
 </html>
