@@ -6,7 +6,10 @@ import json
 from datetime import datetime
 import os
 from random import randint, uniform, choice
-from datetime import timedelta
+from datetime import timedelta#
+from sklearn.cluster import KMeans
+import numpy as np
+
 
 
 geofence_bp = Blueprint('geofence', __name__)
@@ -75,7 +78,6 @@ def get_competitors(business_type):
     competitors = competitor_locations.get(business_type, [])
     return jsonify(competitors)
 
-# New endpoint to save tracking events
 @geofence_bp.route('/api/track_event', methods=['POST'])
 def track_event():
     data = request.get_json()
@@ -105,37 +107,84 @@ def get_tracking():
         "event_type": t.event_type,
         "timestamp": t.timestamp.isoformat(),
         "duration": t.duration,
-        "simulated_hour": t.simulated_hour  # Include simulated_hour
+        "simulated_hour": t.simulated_hour
     } for t in tracking_entries])
 
 @geofence_bp.route('/api/patterns', methods=['GET'])
 def get_patterns():
-    patterns = db.session.query(
-        Tracking.user_id,
-        Tracking.user_name,
-        Tracking.geofence_id,
-        Tracking.geofence_name,
-        db.func.strftime('%w', Tracking.timestamp).label('day_of_week'),
-        db.func.strftime('%H', Tracking.timestamp).label('hour'),
-        db.func.count().label('visits')
-    ).filter(Tracking.event_type == 'entry')\
-     .group_by(
-        Tracking.user_id, Tracking.user_name, Tracking.geofence_id, Tracking.geofence_name,
-        'day_of_week', 'hour'
-     ).having(db.func.count() > 1)\
-     .all()
+    triggers = Tracking.query.filter_by(event_type='entry').all()
+    if not triggers:
+        return jsonify([])
 
-    result = []
-    for p in patterns:
-        result.append({
-            "user_id": p.user_id,
-            "user_name": p.user_name,
-            "geofence_id": p.geofence_id,
-            "geofence_name": p.geofence_name,
-            "day_of_week": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][int(p.day_of_week)],
-            "hour": int(p.hour),
-            "visit_count": p.visits
+    # Prepare data: [user_id, geofence_id, day_of_week (0-6), hour (0-23), minute (0-59)]
+    data = []
+    trigger_info = []
+    for t in triggers:
+        timestamp = t.timestamp
+        data.append([
+            hash(t.user_id),  # Numeric representation of user_id
+            hash(t.geofence_id),  # Numeric representation of geofence_id
+            timestamp.weekday(),
+            timestamp.hour,
+            timestamp.minute
+        ])
+        trigger_info.append({
+            "user_id": t.user_id,
+            "user_name": t.user_name,
+            "geofence_id": t.geofence_id,
+            "geofence_name": t.geofence_name
         })
+
+    if len(data) < 2:  # Need at least 2 points for clustering
+        return jsonify([])
+
+    # Convert to numpy array
+    X = np.array(data)
+
+    # Apply K-means clustering (adjust n_clusters based on data size)
+    n_clusters = min(5, len(data) // 2)  # Arbitrary cap at 5 or half the data points
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    labels = kmeans.fit_predict(X)
+
+    # Calculate cluster centroids and confidence
+    patterns = {}
+    for i, label in enumerate(labels):
+        cluster_key = (trigger_info[i]["user_id"], trigger_info[i]["geofence_id"], label)
+        if cluster_key not in patterns:
+            patterns[cluster_key] = {
+                "user_id": trigger_info[i]["user_id"],
+                "user_name": trigger_info[i]["user_name"],
+                "geofence_id": trigger_info[i]["geofence_id"],
+                "geofence_name": trigger_info[i]["geofence_name"],
+                "times": [],
+                "count": 0
+            }
+        patterns[cluster_key]["times"].append(X[i])
+        patterns[cluster_key]["count"] += 1
+
+    # Compute pattern details and confidence
+    result = []
+    for key, pattern in patterns.items():
+        if pattern["count"] > 1:  # Only consider clusters with multiple entries
+            times = np.array(pattern["times"])
+            centroid = times.mean(axis=0)  # Average day, hour, minute
+            distances = np.linalg.norm(times - centroid, axis=1)  # Euclidean distance to centroid
+            avg_distance = distances.mean()
+            # Confidence: Inverse of avg_distance, normalized (arbitrary scale)
+            confidence = max(0, min(100, 100 - (avg_distance * 2)))  # Higher distance = lower confidence
+
+            result.append({
+                "user_id": pattern["user_id"],
+                "user_name": pattern["user_name"],
+                "geofence_id": pattern["geofence_id"],
+                "geofence_name": pattern["geofence_name"],
+                "day_of_week": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][int(round(centroid[2]))],
+                "hour": int(round(centroid[3])),
+                "minute": int(round(centroid[4])),
+                "visit_count": pattern["count"],
+                "confidence": round(confidence, 2)  # Percentage
+            })
+
     return jsonify(result)
 
 @geofence_bp.route('/api/simulated_users', methods=['GET'])
@@ -156,14 +205,6 @@ def get_simulated_users():
         return jsonify(data)
     except FileNotFoundError:
         return jsonify({"error": "Dataset not found"}), 404
-    
-
-@geofence_bp.route('/test')
-def test():
-    return render_template('test.html')
-
-
-
 
 def generate_user_behavior(user_id, num_weeks, geofences):
     home = {"lat": 53.7996 + uniform(-0.05, 0.05), "lng": -1.5492 + uniform(-0.05, 0.05)}
@@ -173,20 +214,20 @@ def generate_user_behavior(user_id, num_weeks, geofences):
     # Generate 1-2 routines per user, each with a unique day
     user_routines = []
     available_days = list(range(7))  # 0-6 for Sunday-Saturday
-    for _ in range(randint(1, 2)):  # Reduced from 1-3 to 1-2 for less density
+    for _ in range(randint(1, 2)):
         if not available_days:
             break
         day = choice(available_days)
-        available_days.remove(day)  # Ensure no duplicate days
+        available_days.remove(day)
         geofence = choice(geofences)
-        hour = uniform(9, 19)  # Between 9 AM and 7 PM for more realistic shopping hours
+        base_hour = uniform(9, 19)  # Base hour between 9 AM and 7 PM
         frequency = choice(["every", "everyOther", "once"])
-        visits_per_day = 1  # Limit to 1 visit per routine per day (we'll cap total later)
+        visits_per_day = 1
         user_routines.append({
             "geofenceId": geofence.id,
             "geofenceName": geofence.name,
             "day": day,
-            "hour": hour,
+            "base_hour": base_hour,  # Store base hour for variation
             "frequency": frequency,
             "visitsPerDay": visits_per_day
         })
@@ -203,10 +244,10 @@ def generate_user_behavior(user_id, num_weeks, geofences):
             current_hour += 8
             movements.append({"from": work, "to": home, "time": day_time + timedelta(hours=current_hour)})
 
-            # Track occupied hours and limit total geofence visits per day
-            occupied_hours = set()
+            # Track occupied times and limit total geofence visits per day
+            occupied_times = set()  # Store as minutes past midnight
             daily_visits = 0
-            max_daily_visits = 2  # Cap at 2 geofence visits per day
+            max_daily_visits = 2
 
             for routine in user_routines:
                 if routine["day"] == day:
@@ -217,27 +258,36 @@ def generate_user_behavior(user_id, num_weeks, geofences):
                         if geofence and daily_visits < max_daily_visits:
                             coords = json.loads(geofence.coordinates)[0]
                             destination = {"lat": coords["lat"], "lng": coords["lng"]}
-                            visit_hour = routine["hour"]
-                            # Round to nearest hour and ensure no overlap
+                            
+                            # Add variation to the base hour (±15 minutes)
+                            variation_minutes = uniform(-15, 15)  # Random minutes
+                            visit_hour = routine["base_hour"] + (variation_minutes / 60)
                             visit_hour_int = int(round(visit_hour))
-                            if visit_hour_int in occupied_hours or visit_hour_int < 9 or visit_hour_int > 20:
-                                continue  # Skip if hour is occupied or outside 9 AM - 8 PM
-                            occupied_hours.add(visit_hour_int)
-                            occupied_hours.add(visit_hour_int + 1)  # Include return trip
+                            visit_minutes = int((visit_hour - visit_hour_int) * 60)
+                            visit_seconds = randint(0, 59)  # Random seconds
+
+                            # Check for overlap and bounds
+                            total_minutes = (visit_hour_int * 60) + visit_minutes
+                            if (total_minutes in occupied_times or 
+                                visit_hour_int < 9 or visit_hour_int > 20):
+                                continue
+                            occupied_times.add(total_minutes)
+                            occupied_times.add(total_minutes + 60)  # Assume 1-hour visit
                             daily_visits += 1
 
-                            movements.append({"from": home, "to": destination, "time": day_time + timedelta(hours=visit_hour)})
+                            visit_time = day_time + timedelta(hours=visit_hour_int, minutes=visit_minutes, seconds=visit_seconds)
+                            movements.append({"from": home, "to": destination, "time": visit_time})
                             triggers.append({
                                 "user_id": f"User{user_id}",
                                 "user_name": f"SimUser{user_id}",
                                 "geofence_id": geofence.id,
                                 "geofence_name": geofence.name,
                                 "event_type": "entry",
-                                "timestamp": (day_time + timedelta(hours=visit_hour)).isoformat(),
+                                "timestamp": visit_time.isoformat(),
                                 "duration": 1.0,
                                 "simulated_hour": visit_hour_int + (day * 24) + (week * 168)
                             })
-                            movements.append({"from": destination, "to": home, "time": day_time + timedelta(hours=visit_hour + 1)})
+                            movements.append({"from": destination, "to": home, "time": visit_time + timedelta(hours=1)})
 
     return {"home": home, "movements": movements}, triggers
 
@@ -284,3 +334,22 @@ def api_run_simulation():
 @geofence_bp.route('/simulate')
 def simulate():
     return render_template('simulate.html')
+
+@geofence_bp.route('/patterns')
+def patterns():
+    return render_template('patterns.html')
+
+@geofence_bp.route('/api/run_simulation_results', methods=['GET'])
+def api_run_simulation_results():
+    triggers = Tracking.query.all()
+    triggers_data = [{
+        "user_id": t.user_id,
+        "user_name": t.user_name,
+        "geofence_id": t.geofence_id,
+        "geofence_name": t.geofence_name,
+        "event_type": t.event_type,
+        "timestamp": t.timestamp.isoformat(),
+        "duration": t.duration,
+        "simulated_hour": t.simulated_hour
+    } for t in triggers]
+    return jsonify({"triggers": triggers_data})
