@@ -22,3 +22,4 @@ def create_app():
     app.register_blueprint(geofence_bp)
     
     return app
+    
