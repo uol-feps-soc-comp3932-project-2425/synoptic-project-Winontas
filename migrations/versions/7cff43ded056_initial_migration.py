@@ -1,8 +1,8 @@
-"""Add simulated_hour to Tracking
+"""Initial migration
 
-Revision ID: 0aa2d2f80c76
+Revision ID: 7cff43ded056
 Revises: 
-Create Date: 2025-03-28 12:57:16.430608
+Create Date: 2025-04-12 16:08:24.258606
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0aa2d2f80c76'
+revision = '7cff43ded056'
 down_revision = None
 branch_labels = None
 depends_on = None
