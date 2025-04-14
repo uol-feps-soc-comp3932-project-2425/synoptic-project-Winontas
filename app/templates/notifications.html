@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Delivery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
+</head>
+<body class="bg-gray-100 flex flex-col h-screen">
+    <nav class="bg-white shadow-md p-4 flex justify-around">
+        <a href="{{ url_for('geofence.dashboard') }}" class="tab-link px-4 py-2 text-gray-700 font-semibold hover:bg-gray-200 rounded" data-tab="dashboard">Geofencing Dashboard</a>
+        <a href="{{ url_for('geofence.simulate') }}" class="tab-link px-4 py-2 text-gray-700 font-semibold hover:bg-gray-200 rounded" data-tab="simulate">Simulation Dashboard</a>
+        <a href="{{ url_for('geofence.patterns') }}" class="tab-link px-4 py-2 text-gray-700 font-semibold hover:bg-gray-200 rounded" data-tab="patterns">Pattern Recognition</a>
+        <a href="{{ url_for('geofence.notifications') }}" class="tab-link px-4 py-2 text-gray-700 font-semibold hover:bg-gray-200 rounded" data-tab="notifications">Notifications</a>
+    </nav>
+    <div class="flex-1 p-6 bg-white overflow-y-auto">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Email Notifications</h2>
+        <div class="space-y-6 max-w-3xl mx-auto">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Select Users (Confidence ≥ 80%)</h3>
+                <select id="userSelect" multiple class="w-full p-2 border rounded-md h-40 bg-gray-50 focus:ring-2 focus:ring-blue-500">
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Delivery Channel</h3>
+                <label class="flex items-center"><input type="checkbox" id="emailChannel" value="email" class="mr-2" checked disabled> Email</label>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Email Style</h3>
+                <input id="styleInput" type="text" class="w-full p-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-500" placeholder="E.g., casual and inviting, highlight discounts">
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Email Template</h3>
+                <textarea id="messageTemplate" class="w-full p-2 border rounded-md h-24 bg-gray-50 focus:ring-2 focus:ring-blue-500" placeholder="E.g., Hi {user_name}, check out our latest deals!"></textarea>
+                <button id="suggestMessage" class="w-full mt-2 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Suggest AI Email</button>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Scheduled Send Times</h3>
+                <div id="scheduledTimes" class="w-full p-2 border rounded-md bg-gray-100 text-sm text-gray-700">Select users and style to see scheduled times.</div>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Preview</h3>
+                <div id="messagePreview" class="w-full p-2 border rounded-md bg-gray-100 text-sm text-gray-700"></div>
+            </div>
+            <div class="flex space-x-4">
+                <button id="sendNotifications" class="w-1/2 p-2 bg-green-500 text-white rounded-md hover:bg-green-600">Send Now</button>
+                <button id="scheduleNotifications" class="w-1/2 p-2 bg-purple-500 text-white rounded-md hover:bg-purple-600">Schedule Emails</button>
+            </div>
+        </div>
+        <hr class="my-8 border-gray-300">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Sent Emails</h3>
+        <div id="notificationLog" class="space-y-2 overflow-y-auto max-h-96"></div>
+    </div>
+</body>
+</html>
