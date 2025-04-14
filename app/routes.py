@@ -3,14 +3,47 @@ from app import db
 from app.models import Geofence, Tracking
 from app.data.competitors import competitor_locations
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from random import randint, uniform, choice
-from datetime import timedelta#
 from sklearn.cluster import KMeans
 import numpy as np
+import google.generativeai as genai
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+import time
+import schedule
+import threading
+from dotenv import load_dotenv
+# Load environment variables
+load_dotenv()
 
 
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+
+required_vars = {
+    "GOOGLE_API_KEY": GOOGLE_API_KEY,
+    "SENDGRID_API_KEY": SENDGRID_API_KEY,
+    "SENDER_EMAIL": SENDER_EMAIL
+}
+for name, value in required_vars.items():
+    if not value:
+        raise ValueError(f"Environment variable {name} is not set!")
+
+genai.configure(api_key=GOOGLE_API_KEY)
+gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+sendgrid_client = SendGridAPIClient(SENDGRID_API_KEY)
+
+# Scheduling thread
+def run_scheduler():
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
+
+scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
+scheduler_thread.start()
 
 geofence_bp = Blueprint('geofence', __name__)
 
@@ -353,3 +386,273 @@ def api_run_simulation_results():
         "simulated_hour": t.simulated_hour
     } for t in triggers]
     return jsonify({"triggers": triggers_data})
+
+
+@geofence_bp.route('/notifications')
+def notifications():
+    return render_template('notifications.html')
+
+@geofence_bp.route('/api/eligible_users', methods=['GET'])
+def get_eligible_users():
+    try:
+        triggers = Tracking.query.filter_by(event_type='entry').all()
+        if not triggers:
+            return jsonify([])
+
+        data = [[hash(t.user_id), hash(t.geofence_id), t.timestamp.weekday(), t.timestamp.hour, t.timestamp.minute] for t in triggers]
+        if len(data) < 2:
+            return jsonify([])
+
+        X = np.array(data)
+        n_clusters = min(5, len(data) // 2)
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        labels = kmeans.fit_predict(X)
+
+        patterns = {}
+        for i, label in enumerate(labels):
+            t = triggers[i]
+            cluster_key = (t.user_id, t.geofence_id, label)
+            if cluster_key not in patterns:
+                patterns[cluster_key] = {
+                    "user_id": t.user_id,
+                    "user_name": t.user_name,
+                    "geofence_id": t.geofence_id,
+                    "geofence_name": t.geofence_name,
+                    "times": [],
+                    "count": 0
+                }
+            patterns[cluster_key]["times"].append(X[i])
+            patterns[cluster_key]["count"] += 1
+
+        eligible_users = set()
+        for key, pattern in patterns.items():
+            if pattern["count"] > 1:
+                times = np.array(pattern["times"])
+                centroid = times.mean(axis=0)
+                distances = np.linalg.norm(times - centroid, axis=1)
+                confidence = max(0, min(100, 100 - (distances.mean() * 2)))
+                if confidence >= 80:
+                    eligible_users.add((pattern["user_id"], pattern["user_name"]))
+
+        result = [{"user_id": uid, "user_name": uname} for uid, uname in eligible_users]
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error in get_eligible_users: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@geofence_bp.route('/api/send_notifications', methods=['POST'])
+def send_notifications():
+    try:
+        data = request.json
+        user_ids = data.get("user_ids", [])
+        channels = data.get("channels", [])
+        message_template = data.get("message_template", "")
+        style = data.get("style", "neutral")
+
+        if not user_ids or not channels or not message_template:
+            return jsonify({"error": "Missing required fields"}), 400
+
+        triggers = Tracking.query.filter_by(event_type='entry').all()
+        patterns = {}
+        for t in triggers:
+            if t.user_id in user_ids:
+                key = (t.user_id, t.geofence_id)
+                if key not in patterns:
+                    patterns[key] = {"user_id": t.user_id, "user_name": t.user_name, "geofence_name": t.geofence_name}
+
+        sent_notifications = []
+        for user_id in user_ids:
+            user_pattern = next((p for p in patterns.values() if p["user_id"] == user_id), None)
+            if user_pattern:
+                personalized_msg = personalize_message(user_pattern, message_template, style)
+                for channel in channels:
+                    if channel == "email":
+                        status = "Pending"
+                        try:
+                            user_email = f"williamtsinontas@gmail.com"  # Replace with test email
+                            email = Mail(
+                                from_email=SENDER_EMAIL,
+                                to_emails=user_email,
+                                subject="Exclusive Offer Just for You!",
+                                html_content=personalized_msg
+                            )
+                            response = sendgrid_client.send(email)
+                            status = "Delivered" if response.status_code == 202 else "Failed"
+                        except Exception as e:
+                            print(f"Error sending email to {user_pattern['user_name']}: {str(e)}")
+                            status = "Failed"
+
+                        sent_notifications.append({
+                            "user_id": user_id,
+                            "user_name": user_pattern["user_name"],
+                            "channel": channel,
+                            "message": personalized_msg,
+                            "timestamp": datetime.now().isoformat(),
+                            "status": status
+                        })
+                        time.sleep(0.5)  # Respect free tier limits
+
+        return jsonify({"status": "success", "sent_notifications": sent_notifications})
+    except Exception as e:
+        print(f"Error in send_notifications: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@geofence_bp.route('/api/schedule_notifications', methods=['POST'])
+def schedule_notifications():
+    try:
+        data = request.json
+        user_ids = data.get("user_ids", [])
+        channels = data.get("channels", [])
+        message_template = data.get("message_template", "")
+        style = data.get("style", "neutral")
+
+        if not user_ids or not channels or not message_template:
+            return jsonify({"error": "Missing required fields"}), 400
+
+        triggers = Tracking.query.filter_by(event_type='entry').all()
+        patterns = {}
+        for t in triggers:
+            if t.user_id in user_ids:
+                key = (t.user_id, t.geofence_id)
+                if key not in patterns:
+                    patterns[key] = {"user_id": t.user_id, "user_name": t.user_name, "geofence_name": t.geofence_name}
+
+        scheduled_times = []
+        for user_id in user_ids:
+            user_pattern = next((p for p in patterns.values() if p["user_id"] == user_id), None)
+            if user_pattern:
+                user_triggers = [t for t in triggers if t.user_id == user_id]
+                schedule_time = None
+                if len(user_triggers) >= 2:
+                    times = np.array([[t.timestamp.weekday(), t.timestamp.hour] for t in user_triggers])
+                    kmeans = KMeans(n_clusters=1, random_state=42)
+                    kmeans.fit(times)
+                    centroid = kmeans.cluster_centers_[0]
+                    weekday = int(round(centroid[0]))
+                    hour = int(round(centroid[1]))
+                    weekday_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                    schedule_time = f"{weekday_names[weekday]}, {hour:02d}:00"
+
+                    # Calculate next occurrence
+                    now = datetime.now()
+                    days_ahead = (weekday - now.weekday()) % 7 or 7
+                    send_dt = (now + timedelta(days=days_ahead)).replace(hour=hour, minute=0, second=0, microsecond=0)
+                    if send_dt <= now:
+                        send_dt += timedelta(days=7)
+
+                    # Schedule email
+                    personalized_msg = personalize_message(user_pattern, message_template, style)
+                    schedule.every().week.at(f"{hour:02d}:00").do(
+                        send_scheduled_email,
+                        user_email=f"{user_pattern['user_name'].lower()}@example.com",  # Replace with test email
+                        user_name=user_pattern["user_name"],
+                        message=personalized_msg
+                    ).tag(f"email_{user_id}")
+
+                scheduled_times.append({
+                    "user_id": user_id,
+                    "user_name": user_pattern["user_name"],
+                    "time": schedule_time or "No pattern detected"
+                })
+
+        return jsonify({"status": "success", "scheduled_times": scheduled_times})
+    except Exception as e:
+        print(f"Error in schedule_notifications: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+def send_scheduled_email(user_email, user_name, message):
+    try:
+        email = Mail(
+            from_email=SENDER_EMAIL,
+            to_emails=user_email,
+            subject="Exclusive Offer Just for You!",
+            html_content=message
+        )
+        response = sendgrid_client.send(email)
+        status = "Delivered" if response.status_code == 202 else "Failed"
+        print(f"Scheduled email to {user_name}: {status}")
+        # Log to database or file if needed
+    except Exception as e:
+        print(f"Error sending scheduled email to {user_name}: {str(e)}")
+    finally:
+        # Remove job after execution
+        for job in schedule.get_jobs(f"email_{user_name}"):
+            schedule.cancel_job(job)
+
+def personalize_message(pattern, template, style):
+    user_name = pattern["user_name"]
+    geofence = pattern["geofence_name"]
+    if "casual" in style.lower():
+        return f"Hey {user_name}, loved {geofence}? We've got some cool deals for you!"
+    elif "discount" in style.lower():
+        return f"{user_name}, save big at {geofence} with our exclusive offers!"
+    return template.format(user_name=user_name, geofence=geofence)
+
+@geofence_bp.route('/api/suggest_message', methods=['POST'])
+def suggest_message():
+    try:
+        data = request.json
+        user_ids = data.get("user_ids", [])
+        style = data.get("style", "neutral")
+
+        if not user_ids:
+            return jsonify({"error": "No users selected"}), 400
+
+        triggers = Tracking.query.filter_by(event_type='entry').all()
+        sample_pattern = next((t for t in triggers if t.user_id in user_ids), None)
+        if not sample_pattern:
+            return jsonify({"error": "No pattern data available"}), 404
+
+        # Calculate scheduled times for all users
+        scheduled_times = []
+        for user_id in user_ids:
+            user_triggers = [t for t in triggers if t.user_id == user_id]
+            schedule_time = None
+            if len(user_triggers) >= 2:
+                times = np.array([[t.timestamp.weekday(), t.timestamp.hour] for t in user_triggers])
+                kmeans = KMeans(n_clusters=1, random_state=42)
+                kmeans.fit(times)
+                centroid = kmeans.cluster_centers_[0]
+                weekday = int(round(centroid[0]))
+                hour = int(round(centroid[1]))
+                weekday_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                schedule_time = f"{weekday_names[weekday]}, {hour:02d}:00"
+            user_name = next((t.user_name for t in user_triggers), "Unknown")
+            scheduled_times.append({
+                "user_id": user_id,
+                "user_name": user_name,
+                "time": schedule_time or "No pattern detected"
+            })
+
+        try:
+            prompt = f"""
+            Generate a marketing email for {sample_pattern.user_name} who visited {sample_pattern.geofence_name}. 
+            Style: '{style}' (e.g., casual and inviting, highlight discounts, neutral). 
+            Keep it engaging, under 50 words, tied to their visit to {sample_pattern.geofence_name}. 
+            Do NOT mention specific times or tracking details to avoid sounding intrusive.
+            """
+            response = gemini_model.generate_content(
+                prompt,
+                generation_config={
+                    "max_output_tokens": 50,
+                    "temperature": 0.7
+                }
+            )
+            suggestion = response.text.strip()
+            return jsonify({
+                "suggestion": suggestion,
+                "scheduled_times": scheduled_times
+            })
+        except Exception as e:
+            error_message = str(e)
+            status_code = 500
+            if "Quota exceeded" in error_message or "rate limit" in error_message:
+                status_code = 429
+                error_message = "Gemini API rate limit exceeded. Try again later."
+            elif "API key" in error_message:
+                status_code = 401
+                error_message = "Invalid Gemini API key."
+            return jsonify({"error": error_message}), status_code
+    except Exception as e:
+        print(f"Error in suggest_message: {str(e)}")
+        return jsonify({"error": str(e)}), 500
