@@ -1,4 +1,15 @@
+/**
+ * tabs.js: Manages the navigation tab UI, highlighting the active tab based on the current page.
+ * Enhances user experience by providing visual feedback for navigation.
+ */
+
+// -----------------------------
+// Section 1: Tab Management
+// -----------------------------
+// Handles tab highlighting to reflect the current page.
+
 document.addEventListener("DOMContentLoaded", () => {
+    /** Highlights the active navigation tab based on the current URL path. */
     const tabs = document.querySelectorAll(".tab-link");
     const currentPath = window.location.pathname;
 

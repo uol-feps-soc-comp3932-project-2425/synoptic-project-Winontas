@@ -1,7 +1,19 @@
+/**
+ * simulation.js: Visualizes simulated user movements on a Google Map.
+ * Integrates with the backend to run simulations and display user home locations and movement paths.
+ * Supports testing of pattern recognition and notification logic without real user data.
+ */
+
 let simulationMap;
 let userMarkers = [];
 
+// -----------------------------
+// Section 1: Map Initialization
+// -----------------------------
+// Sets up the simulation map and geofence display, preparing the interface for simulation results.
+
 function initSimulationMap() {
+    /** Initializes the Google Map for simulation visualization and loads geofences. */
     simulationMap = new google.maps.Map(document.getElementById("mapView"), {
         center: { lat: 53.7996, lng: -1.5492 },
         zoom: 13,
@@ -9,6 +21,7 @@ function initSimulationMap() {
         fullscreenControl: true,
     });
 
+    // Load geofences for context
     fetch('/geofences')
         .then(response => response.json())
         .then(data => {
@@ -27,16 +40,25 @@ function initSimulationMap() {
         })
         .catch(error => console.error("Error loading geofences:", error));
 
+    // Bind simulation button
     document.getElementById("runSimulation").addEventListener("click", runSimulation);
 }
 
+// -----------------------------
+// Section 2: Simulation Visualization
+// -----------------------------
+// Runs simulations via the backend and visualizes user movements with markers and paths.
+
 async function runSimulation() {
+    /** Runs a simulation with specified users and weeks, displaying results on the map. */
     const numUsers = parseInt(document.getElementById("numUsers").value);
     const numWeeks = parseInt(document.getElementById("numWeeks").value);
 
+    // Clear existing markers
     userMarkers.forEach(marker => marker.setMap(null));
     userMarkers = [];
 
+    // Trigger simulation
     const response = await fetch('/api/run_simulation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,6 +71,7 @@ async function runSimulation() {
         return;
     }
 
+    // Visualize users and movements
     result.users.forEach((user, index) => {
         const color = `hsl(${index * 360 / numUsers}, 70%, 50%)`;
         const homeMarker = new google.maps.Marker({

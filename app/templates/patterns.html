@@ -1,22 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta and Title: Configures page encoding, viewport, and title -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pattern Recognition</title>
+
+    <!-- Styles and Scripts: Loads Tailwind CSS, Chart.js, and custom JS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='js/patterns.js') }}"></script>
     <script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
 </head>
 <body class="bg-gray-100 flex flex-col h-screen">
+    <!-- Section 1: Navigation Bar -->
+    <!-- Provides links to all application pages, with tabs.js highlighting the active tab -->
     <nav class="bg-white shadow-md p-4 flex justify-around">
         <a href="{{ url_for('geofence.dashboard') }}" class="tab-link px-4 py-2 text-gray-700 font-semibold hover:bg-gray-200 rounded" data-tab="dashboard">Geofencing Dashboard</a>
         <a href="{{ url_for('geofence.simulate') }}" class="tab-link px-4 py-2 text-gray-700 font-semibold hover:bg-gray-200 rounded" data-tab="simulate">Simulation Dashboard</a>
         <a href="{{ url_for('geofence.patterns') }}" class="tab-link px-4 py-2 text-gray-700 font-semibold hover:bg-gray-200 rounded" data-tab="patterns">Pattern Recognition</a>
         <a href="{{ url_for('geofence.notifications') }}" class="tab-link px-4 py-2 text-gray-700 font-semibold hover:bg-gray-200 rounded" data-tab="notifications">Notifications</a>
     </nav>
+
+    <!-- Section 2: Main Content -->
+    <!-- Splits the page into a sidebar for filters/results and a chart area -->
     <div class="flex h-full">
+        <!-- Sidebar: Controls for filtering patterns and displaying results -->
+        <!-- Interacts with patterns.js to populate filters and results -->
         <aside class="w-1/3 p-6 bg-white shadow-lg overflow-y-auto">
             <h2 class="text-2xl font-semibold text-gray-800 mb-6">Pattern Recognition</h2>
             <div class="space-y-4">
@@ -27,12 +37,15 @@
                         <option value="user">By User</option>
                         <option value="geofence">By Geofence</option>
                     </select>
-                    <select id="filterValue" class="p-2 border rounded-md flex-1" disabled></select>
+                    <select id="filterValue" class="p-2 border rounded-md flex-1" disabled></select> <!-- Populated by patterns.js -->
                 </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">Simulation Results</h3>
-                <div id="simulationResults" class="space-y-2 overflow-y-auto"></div>
+                <div id="simulationResults" class="space-y-2 overflow-y-auto"></div> <!-- Populated by patterns.js -->
             </div>
         </aside>
+
+        <!-- Chart: Visualizes pattern data as bar charts -->
+        <!-- Managed by patterns.js using Chart.js -->
         <div class="w-2/3 h-full p-6 bg-white overflow-y-auto flex items-center justify-center">
             <canvas id="patternChart" class="w-full h-full"></canvas>
         </div>

@@ -1,6 +1,18 @@
+/**
+ * notifications.js: Manages the notification interface for sending and scheduling emails.
+ * Integrates with the backend to fetch eligible users, send notifications, and generate AI-suggested messages.
+ * Provides a preview and logging mechanism for user interactions.
+ */
+
 let eligibleUsers = [];
 
+// -----------------------------
+// Section 1: Initialization
+// -----------------------------
+// Sets up the notifications page with user selection and event listeners.
+
 function initNotifications() {
+    /** Initializes the notifications page, loading eligible users and binding controls. */
     console.log("Initializing notifications page...");
     fetch('/api/eligible_users')
         .then(response => {
@@ -14,6 +26,7 @@ function initNotifications() {
         })
         .catch(error => console.error("Error loading eligible users:", error));
 
+    // Bind action buttons and inputs
     document.getElementById("sendNotifications").addEventListener("click", sendNotifications);
     document.getElementById("scheduleNotifications").addEventListener("click", scheduleNotifications);
     document.getElementById("suggestMessage").addEventListener("click", suggestAIMessage);
@@ -22,7 +35,13 @@ function initNotifications() {
     document.getElementById("userSelect").addEventListener("change", updatePreview);
 }
 
+// -----------------------------
+// Section 2: UI Updates
+// -----------------------------
+// Manages user selection and message preview updates in the UI.
+
 function populateUserSelect() {
+    /** Populates the user selection dropdown with eligible users. */
     const userSelect = document.getElementById("userSelect");
     userSelect.innerHTML = "";
     eligibleUsers.forEach(user => {
@@ -35,6 +54,7 @@ function populateUserSelect() {
 }
 
 function updatePreview() {
+    /** Updates the message preview based on selected user, template, and style. */
     const userSelect = document.getElementById("userSelect");
     const selectedUserIds = Array.from(userSelect.selectedOptions).map(option => option.value);
     const messageTemplate = document.getElementById("messageTemplate").value;
@@ -59,7 +79,13 @@ function updatePreview() {
     }
 }
 
+// -----------------------------
+// Section 3: Notification Actions
+// -----------------------------
+// Handles sending, scheduling, and suggesting notifications via backend APIs.
+
 function sendNotifications() {
+    /** Sends email notifications to selected users with a specified template and style. */
     const userSelect = document.getElementById("userSelect");
     const selectedUserIds = Array.from(userSelect.selectedOptions).map(option => option.value);
     const channels = ["email"];
@@ -98,6 +124,7 @@ function sendNotifications() {
 }
 
 function scheduleNotifications() {
+    /** Schedules email notifications for selected users based on their patterns. */
     const userSelect = document.getElementById("userSelect");
     const selectedUserIds = Array.from(userSelect.selectedOptions).map(option => option.value);
     const channels = ["email"];
@@ -137,6 +164,7 @@ function scheduleNotifications() {
 }
 
 function suggestAIMessage() {
+    /** Generates an AI-suggested email message for selected users using the backend. */
     const userSelect = document.getElementById("userSelect");
     const selectedUserIds = Array.from(userSelect.selectedOptions).map(option => option.value);
     const style = document.getElementById("styleInput").value || "neutral";
@@ -180,7 +208,13 @@ function suggestAIMessage() {
     });
 }
 
+// -----------------------------
+// Section 4: UI Feedback
+// -----------------------------
+// Displays notification logs and scheduled times to provide user feedback.
+
 function displayScheduledTimes(scheduled_times) {
+    /** Displays scheduled notification times in the UI. */
     const timesDiv = document.getElementById("scheduledTimes");
     if (scheduled_times.length === 0) {
         timesDiv.textContent = "No scheduled times available.";
@@ -190,6 +224,7 @@ function displayScheduledTimes(scheduled_times) {
 }
 
 function displayNotificationLog(notifications) {
+    /** Displays a log of sent notifications with their status. */
     const logDiv = document.getElementById("notificationLog");
     logDiv.innerHTML = "";
     notifications.forEach(notif => {

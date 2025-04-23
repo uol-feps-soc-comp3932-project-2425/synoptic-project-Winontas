@@ -1,8 +1,20 @@
+/**
+ * patterns.js: Displays and visualizes user behavior patterns from simulation results.
+ * Uses Chart.js to render bar charts of visit patterns and supports filtering by user or geofence.
+ * Integrates with the backend to fetch pattern data for analysis.
+ */
+
 let simulationResults = [];
 let chartInstance = null;
-let chartUpdatePending = false; // Flag to debounce updates
+let chartUpdatePending = false; // Prevents concurrent chart updates
+
+// -----------------------------
+// Section 1: Initialization
+// -----------------------------
+// Sets up the patterns page with event listeners and initial data loading.
 
 function initPatterns() {
+    /** Initializes the patterns page, loading simulation results and setting up filters. */
     console.log("Initializing patterns page...");
     fetch('/api/run_simulation_results')
         .then(response => {
@@ -18,11 +30,18 @@ function initPatterns() {
         })
         .catch(error => console.error("Error loading simulation results:", error));
 
+    // Bind filter controls
     document.getElementById("filterType").addEventListener("change", updateFilterOptions);
     document.getElementById("filterValue").addEventListener("change", filterResults);
 }
 
+// -----------------------------
+// Section 2: Filtering
+// -----------------------------
+// Manages filter options and applies filters to display relevant patterns.
+
 function updateFilterOptions() {
+    /** Populates filter dropdowns based on selected filter type (user or geofence). */
     const filterType = document.getElementById("filterType").value;
     const filterValue = document.getElementById("filterValue");
     filterValue.innerHTML = '<option value="all">All</option>';
@@ -49,6 +68,7 @@ function updateFilterOptions() {
 }
 
 function filterResults() {
+    /** Filters simulation results based on selected type and value, updating UI and chart. */
     const filterType = document.getElementById("filterType").value;
     const filterValue = document.getElementById("filterValue").value;
     let filteredResults = simulationResults;
@@ -63,7 +83,13 @@ function filterResults() {
     updatePatternChart(filteredResults);
 }
 
+// -----------------------------
+// Section 3: Visualization
+// -----------------------------
+// Displays simulation results as text and visualizes patterns using Chart.js bar charts.
+
 function displayResults(results) {
+    /** Displays filtered simulation results as a text list in the UI. */
     const resultsDiv = document.getElementById("simulationResults");
     if (!resultsDiv) {
         console.error("Simulation results div not found!");
@@ -80,6 +106,7 @@ function displayResults(results) {
 }
 
 async function updatePatternChart(results) {
+    /** Renders a bar chart of pattern data, adjusting based on filters. */
     if (chartUpdatePending) {
         console.log("Chart update already in progress, skipping...");
         return;
@@ -99,7 +126,7 @@ async function updatePatternChart(results) {
         return;
     }
 
-    // Destroy existing chart instance if it exists
+    // Destroy existing chart
     if (chartInstance && typeof chartInstance.destroy === 'function') {
         console.log("Destroying existing chart instance...");
         chartInstance.destroy();
@@ -107,11 +134,13 @@ async function updatePatternChart(results) {
     }
 
     try {
+        // Fetch patterns from backend
         const response = await fetch('/api/patterns');
         if (!response.ok) throw new Error(`Failed to fetch patterns: ${response.status}`);
         let patterns = await response.json();
         console.log("Patterns loaded:", patterns);
 
+        // Filter patterns based on results
         const filteredUserIds = [...new Set(results.map(r => r.user_id))];
         const filteredGeofenceIds = [...new Set(results.map(r => r.geofence_id))];
         patterns = patterns.filter(p => 
@@ -123,7 +152,7 @@ async function updatePatternChart(results) {
         const filterValue = document.getElementById("filterValue").value;
 
         if (filterType === "all") {
-            // Aggregated bar chart by day of week
+            // Aggregate visits by day of week
             const dayCounts = {};
             const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
             days.forEach(day => dayCounts[day] = 0);
@@ -188,7 +217,7 @@ async function updatePatternChart(results) {
                 }
             });
         } else {
-            // Detailed bar chart for filtered view
+            // Detailed chart for specific patterns
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -235,7 +264,7 @@ async function updatePatternChart(results) {
             }
         });
     } finally {
-        chartUpdatePending = false; // Reset flag after completion
+        chartUpdatePending = false;
     }
 }
 
