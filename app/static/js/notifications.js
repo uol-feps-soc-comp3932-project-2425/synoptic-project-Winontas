@@ -7,13 +7,13 @@
 let eligibleUsers = [];
 
 // -----------------------------
-// Section 1: Initialization
+// Section 1: Initialisation
 // -----------------------------
 // Sets up the notifications page with user selection and event listeners.
 
 function initNotifications() {
     /** Initializes the notifications page, loading eligible users and binding controls. */
-    console.log("Initializing notifications page...");
+    console.log("Initialising notifications page...");
     fetch('/api/eligible_users')
         .then(response => {
             if (!response.ok) throw new Error(`Failed to fetch eligible users: ${response.status}`);

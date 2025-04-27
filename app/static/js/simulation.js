@@ -1,5 +1,5 @@
 /**
- * simulation.js: Visualizes simulated user movements on a Google Map.
+ * simulation.js: Visualises simulated user movements on a Google Map.
  * Integrates with the backend to run simulations and display user home locations and movement paths.
  * Supports testing of pattern recognition and notification logic without real user data.
  */
@@ -8,12 +8,12 @@ let simulationMap;
 let userMarkers = [];
 
 // -----------------------------
-// Section 1: Map Initialization
+// Section 1: Map Initialisation
 // -----------------------------
 // Sets up the simulation map and geofence display, preparing the interface for simulation results.
 
 function initSimulationMap() {
-    /** Initializes the Google Map for simulation visualization and loads geofences. */
+    /** Initialises the Google Map for simulation visualisation and loads geofences. */
     simulationMap = new google.maps.Map(document.getElementById("mapView"), {
         center: { lat: 53.7996, lng: -1.5492 },
         zoom: 13,
@@ -45,9 +45,9 @@ function initSimulationMap() {
 }
 
 // -----------------------------
-// Section 2: Simulation Visualization
+// Section 2: Simulation Visualisation
 // -----------------------------
-// Runs simulations via the backend and visualizes user movements with markers and paths.
+// Runs simulations via the backend and visualises user movements with markers and paths.
 
 async function runSimulation() {
     /** Runs a simulation with specified users and weeks, displaying results on the map. */
@@ -71,7 +71,7 @@ async function runSimulation() {
         return;
     }
 
-    // Visualize users and movements
+    // Visualise users and movements
     result.users.forEach((user, index) => {
         const color = `hsl(${index * 360 / numUsers}, 70%, 50%)`;
         const homeMarker = new google.maps.Marker({

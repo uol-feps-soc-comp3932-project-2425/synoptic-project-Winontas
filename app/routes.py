@@ -22,8 +22,12 @@ import time
 import schedule
 import threading
 from dotenv import load_dotenv
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
-# Initialize Blueprint for geofence-related routes
+
+# Initialise Blueprint for geofence-related routes
 geofence_bp = Blueprint('geofence', __name__)
 
 # Load environment variables for external services
@@ -31,6 +35,7 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+TEST_EMAIL = os.getenv("TEST_EMAIL")
 
 # Validate required environment variables
 required_vars = {
@@ -46,7 +51,7 @@ for name, value in required_vars.items():
 genai.configure(api_key=GOOGLE_API_KEY)
 gemini_model = genai.GenerativeModel("gemini-1.5-flash")
 
-# Initialize SendGrid client for email notifications
+# Initialise SendGrid client for email notifications
 sendgrid_client = SendGridAPIClient(SENDGRID_API_KEY)
 
 # Set up scheduler for timed notifications
@@ -159,7 +164,7 @@ def track_event():
 
 @geofence_bp.route('/api/tracking', methods=['GET'])
 def get_tracking():
-    """Retrieves all tracking entries for analysis or visualization."""
+    """Retrieves all tracking entries for analysis or visualisation."""
     tracking_entries = Tracking.query.all()
     return jsonify([{
         "id": t.id,
@@ -176,14 +181,14 @@ def get_tracking():
 # -----------------------------
 # Section 3: Pattern Recognition
 # -----------------------------
-# This section analyzes tracking data to identify recurring user behaviors using K-means clustering.
-# Patterns inform notification scheduling and personalization, enabling targeted marketing.
+# This section analyses tracking data to identify recurring user behaviours using K-means clustering.
+# Patterns inform notification scheduling and personalisation, enabling targeted marketing.
 
 @geofence_bp.route('/api/patterns', methods=['GET'])
 def get_patterns():
     """
-    Identifies user behavior patterns by clustering tracking entries based on user, geofence,
-    day, and time. Returns patterns with confidence scores for visualization.
+    Identifies user behaviour patterns by clustering tracking entries based on user, geofence,
+    day, and time. Returns patterns with confidence scores for visualisation.
     """
     triggers = Tracking.query.filter_by(event_type='entry').all()
     if not triggers:
@@ -314,10 +319,10 @@ def get_eligible_users():
 # -----------------------------
 # Section 4: Simulation
 # -----------------------------
-# This section generates synthetic user behavior for testing pattern recognition and notifications.
+# This section generates synthetic user behaviour for testing pattern recognition and notifications.
 # It simulates user movements and geofence interactions, storing results in the database.
 
-def generate_user_behavior(user_id, num_weeks, geofences):
+def generate_user_behaviour(user_id, num_weeks, geofences):
     """
     Generates synthetic user movements and geofence triggers for a given user over specified weeks.
     Returns user data (home, movements) and triggers (geofence entries).
@@ -427,7 +432,7 @@ def api_run_simulation():
     all_users = []
     all_triggers = []
     for i in range(1, num_users + 1):
-        user_data, triggers = generate_user_behavior(i, num_weeks, geofences)
+        user_data, triggers = generate_user_behaviour(i, num_weeks, geofences)
         all_users.append({"id": f"User{i}", "name": f"SimUser{i}", "home": user_data["home"], "movements": user_data["movements"]})
         all_triggers.extend(triggers)
 
@@ -487,10 +492,10 @@ def get_simulated_users():
 # -----------------------------
 # Section 5: Notifications
 # -----------------------------
-# This section handles sending and scheduling personalized notifications based on user patterns.
+# This section handles sending and scheduling personalised notifications based on user patterns.
 # It integrates with SendGrid for email delivery and Gemini for message suggestions.
 
-def personalize_message(pattern, template, style):
+def personalise_message(pattern, template, style):
     """Formats a message using a template, user name, geofence, and style (e.g., casual, discount)."""
     user_name = pattern["user_name"]
     geofence = pattern["geofence_name"]
@@ -521,7 +526,7 @@ def send_scheduled_email(user_email, user_name, message):
 
 @geofence_bp.route('/api/send_notifications', methods=['POST'])
 def send_notifications():
-    """Sends personalized email notifications to specified users via SendGrid."""
+    """Sends personalised email notifications to specified users via SendGrid."""
     try:
         data = request.json
         user_ids = data.get("user_ids", [])
@@ -546,17 +551,17 @@ def send_notifications():
         for user_id in user_ids:
             user_pattern = next((p for p in patterns.values() if p["user_id"] == user_id), None)
             if user_pattern:
-                personalized_msg = personalize_message(user_pattern, message_template, style)
+                personalised_msg = personalise_message(user_pattern, message_template, style)
                 for channel in channels:
                     if channel == "email":
                         status = "Pending"
                         try:
-                            user_email = f"williamtsinontas@gmail.com"  # Placeholder for testing
+                            user_email =TEST_EMAIL  # Placeholder for testing
                             email = Mail(
                                 from_email=SENDER_EMAIL,
                                 to_emails=user_email,
                                 subject="Exclusive Offer Just for You!",
-                                html_content=personalized_msg
+                                html_content=personalised_msg
                             )
                             response = sendgrid_client.send(email)
                             status = "Delivered" if response.status_code == 202 else "Failed"
@@ -568,7 +573,7 @@ def send_notifications():
                             "user_id": user_id,
                             "user_name": user_pattern["user_name"],
                             "channel": channel,
-                            "message": personalized_msg,
+                            "message": personalised_msg,
                             "timestamp": datetime.now().isoformat(),
                             "status": status
                         })
@@ -628,12 +633,12 @@ def schedule_notifications():
                     if send_dt <= now:
                         send_dt += timedelta(days=7)
 
-                    personalized_msg = personalize_message(user_pattern, message_template, style)
+                    personalised_msg = personalise_message(user_pattern, message_template, style)
                     schedule.every().week.at(f"{hour:02d}:00").do(
                         send_scheduled_email,
                         user_email=f"{user_pattern['user_name'].lower()}@example.com",  # Placeholder
                         user_name=user_pattern["user_name"],
-                        message=personalized_msg
+                        message=personalised_msg
                     ).tag(f"email_{user_id}")
 
                 scheduled_times.append({
@@ -738,10 +743,11 @@ def simulate():
 
 @geofence_bp.route('/patterns')
 def patterns():
-    """Renders the patterns page for visualizing user behavior patterns."""
+    """Renders the patterns page for visualising user behaviour patterns."""
     return render_template('patterns.html')
 
 @geofence_bp.route('/notifications')
 def notifications():
     """Renders the notifications page for managing email campaigns."""
     return render_template('notifications.html')
+

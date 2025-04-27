@@ -1,5 +1,5 @@
 /**
- * map.js: Manages the Google Maps interface for creating, editing, and visualizing geofences.
+ * map.js: Manages the Google Maps interface for creating, editing, and visualising geofences.
  * Integrates with the backend to persist geofences and displays competitor locations to aid placement.
  * Provides interactive controls for drawing and managing geofences on the dashboard.
  */
@@ -18,14 +18,14 @@ const businessTypeToPlacesType = {
 };
 
 // -----------------------------
-// Section 1: Map Initialization
+// Section 1: Map Initialisation
 // -----------------------------
-// Initializes the Google Maps interface and sets up geofence drawing tools.
+// Initialises the Google Maps interface and sets up geofence drawing tools.
 // This section is critical for enabling users to define geofences visually.
 
 function initMap() {
-    /** Initializes the Google Map, drawing manager, and event listeners. */
-    console.log("Initializing Google Maps...");
+    /** Initialises the Google Map, drawing manager, and event listeners. */
+    console.log("Initialising Google Maps...");
 
     // Verify Google Maps API availability
     if (typeof google === "undefined" || !google.maps) {
@@ -40,7 +40,7 @@ function initMap() {
         return;
     }
 
-    // Initialize map centered on Leeds, UK
+    // Initialise map centered on Leeds, UK
     map = new google.maps.Map(mapDiv, {
         center: { lat: 53.7996, lng: -1.5492 },
         zoom: 15,
@@ -230,7 +230,7 @@ function deleteGeofence(id) {
 }
 
 // -----------------------------
-// Section 3: Competitor Visualization
+// Section 3: Competitor Visualisation
 // -----------------------------
 // Displays competitor locations to aid strategic geofence placement.
 // Integrates with the Google Places API to fetch relevant businesses.
