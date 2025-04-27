@@ -1,147 +1,159 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/zqYhAx1c)
+## Overview
 
-Geofencing Personalised Marketing System
-Overview
-The Geofencing Personalised Marketing System is a Flask-based web application designed to create, manage, and analyse geofences for targeted marketing notifications. Users can define geofences on a map, simulate user movements, detect behavioural patterns, and send personalised email notifications based on those high-confidence behavioural patterns. The system integrates Google Maps and Places APIs for visualisation and competitor analysis, and Chart.js for pattern visualisation.
+The **Geofencing Personalised Marketing System** is a Flask-based web application designed to create, manage, and analyse geofences for targeted marketing notifications.  
+Users can define geofences on a map, simulate user movements, detect behavioural patterns, and send personalised email notifications based on high-confidence behavioural patterns.  
+The system integrates Google Maps and Places APIs for visualisation and competitor analysis, and Chart.js for pattern visualisation.
 
-Key Features
-Geofence Management: Create, edit, toggle, and delete geofences for business categories.
+---
 
-Competitor Visualisation: Display competitor locations via Google Places API to optimise geofence placement.
+## Key Features
 
-Simulation: Generate realisitc user movements to test pattern recognition.
+- **Geofence Management:** Create, edit, toggle, and delete geofences by business category.
+- **Competitor Visualisation:** Display competitor locations via Google Places API to optimise geofence placement.
+- **Simulation:** Generate realistic user movements to test pattern recognition.
+- **Pattern Recognition:** Analyse visit patterns (day/time) and confidence levels using Chart.js.
+- **Notifications:** Send or schedule personalised emails for users with high-confidence patterns (≥ 80%).
+- **Interactive Dashboard:** User-friendly interface with navigation, map views, and dynamic controls.
 
-Pattern Recognition: Analyse visit patterns (by day/time) and pattern confidence with Chart.js bar charts.
+---
 
-Notifications: Send or schedule personalised emails for users with high-confidence patterns (≥80%).
+## Prerequisites
 
-Interactive Dashboard: User-friendly interface with navigation, map views, and dynamic controls.
+- Python 3.8+
+- Flask 3.1.0
+- SQLite (via SQLAlchemy)
+- Google Maps API Key (Maps, Places, Drawing libraries enabled)
+- Node.js (optional, for frontend testing)
+- Git
 
-Prerequisites
-Python 3.8+
+---
 
-Flask 3.1.0
+## Installation
 
-SQLite (via SQLAlchemy)
+1. **Clone the Repository:**
 
-Google Maps API Key (Maps, Places, Drawing libraries enabled)
+```bash
+git clone <repository-url>
+cd <repository-folder>
+```
 
-Node.js (optional, for frontend testing)
+2. **Set Up a Virtual Environment:**
 
-Git
-
-Installation
-Clone the Repository
-
-Set Up a Virtual Environment:
-bash
+```bash
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate   # Windows: venv\Scripts\activate
+```
 
-Install Dependencies:
-Use the provided requirements.txt.
-bash
+3. **Install Dependencies:**
+
+```bash
 pip install -r requirements.txt
+```
 
-Configure Environment:
-Create a .env file in the project root:
+4. **Configure Environment Variables:**
+
+Create a `.env` file in the project root with:
+
+```bash
 GOOGLE_API_KEY=your-google-api-key
 SENDGRID_API_KEY=your-sendgrid-api-key
 SENDER_EMAIL=your-sender-email
+```
 
-Initialise Database:
-bash
+5. **Initialise Database:**
 
+```bash
 flask db init
 flask db migrate
 flask db upgrade
+```
 
-This creates the SQLite database with tables defined in models.py (Geofence, Tracking).
+This sets up the SQLite database with tables defined in `models.py` (Geofence, Tracking).
 
-File Descriptions
-routes.py: Defines Flask routes for managing geofences, running simulations, detecting patterns, and sending notifications. Uses SQLAlchemy for database operations.
+---
 
-models.py: Defines Geofence (id, business_type, name, coordinates, active) and Tracking (id, user_id, user_name, geofence_id, geofence_name, event_type, timestamp, duration, simulated_hour) tables.
+## File Descriptions
 
-map.js: Manages Google Maps interface for drawing geofences and visualising competitors (dashboard.html).
+- **`routes.py`** — Flask routes for geofence management, simulation, pattern detection, and notifications.
+- **`models.py`** — Database models for Geofence and Tracking tables.
+- **`map.js`** — Google Maps interface for geofence creation and competitor visualisation.
+- **`simulation.js`** — Renders simulated user movements.
+- **`patterns.js`** — Analyses and visualises user behaviour patterns.
+- **`notifications.js`** — Manages email notification setup, AI suggestions, and sending.
+- **`tabs.js`** — Handles dashboard tab navigation highlighting.
+- **HTML Templates:**
+  - `dashboard.html` — Manage geofences.
+  - `simulate.html` — Configure and visualise user simulations.
+  - `patterns.html` — Filter and view user pattern data.
+  - `notification.html` — Send and schedule notifications.
 
-simulation.js: Renders simulated user movements on a map (simulate.html).
+---
 
-patterns.js: Analyses and visualises user behaviour patterns (patterns.html).
+## Usage
 
-notifications.js: Handles email notification configuration, AI suggestions, and delivery (notification.html).
+1. **Run the Application:**
 
-tabs.js: Highlights active navigation tabs.
-
-dashboard.html: Interface for creating and managing geofences.
-
-simulate.html: Interface for configuring and visualising simulations.
-
-patterns.html: Interface for filtering and visualising pattern data.
-
-notification.html: Interface for sending and scheduling notifications.
-
-Usage
-Run Application:
-bash
-
+```bash
 flask run
+```
 
-Visit the url provided with the endpoint /dashboard.
+2. **Access the Dashboard:**
 
-Navigate Dashboard:
-Geofencing Dashboard: Draw and manage geofences by business type.
+Visit `http://127.0.0.1:5000/dashboard`.
 
-Simulation Dashboard: Configure and visualise user simulations.
+3. **Navigate the Interface:**
+- **Geofencing Dashboard:** Draw and manage geofences.
+- **Simulation Dashboard:** Configure and view simulations.
+- **Pattern Recognition:** Filter and view visit pattern charts.
+- **Notifications:** Send/schedule AI-enhanced emails.
 
-Pattern Recognition: Filter and view visit pattern charts.
+---
 
-Notifications: Send/schedule emails with AI suggestions.
+## API Endpoints
 
-API Endpoints:
-GET /geofences: List geofences.
+- `GET /geofences` — List all geofences.
+- `POST /geofences` — Create a new geofence.
+- `PUT /geofences/<id>` — Update an existing geofence.
+- `DELETE /geofences/<id>` — Delete a geofence.
+- `PUT /geofences/<id>/toggle` — Activate or deactivate a geofence.
+- `POST /api/run_simulation` — Run user simulation.
+- `GET /api/run_simulation_results` — Get simulation results.
+- `GET /api/patterns` — Get recognised patterns.
+- `GET /api/eligible_users` — List users eligible for notifications.
+- `POST /api/send_notifications` — Send notification emails.
+- `POST /api/schedule_notifications` — Schedule notifications.
+- `POST /api/suggest_message` — Generate AI-suggested messages.
 
-POST /geofences: Create geofence.
+---
 
-PUT /geofences/<id>: Update geofence.
+## Testing
 
-DELETE /geofences/<id>: Delete geofence.
+> It is recommended to perform testing on a separate branch to protect the main branch and maintain database integrity.
 
-PUT /geofences/<id>/toggle: Toggle geofence status.
+Run backend tests with:
 
-POST /api/run_simulation: Run simulation.
-
-GET /api/run_simulation_results: Get simulation results.
-
-GET /api/patterns: Get patterns.
-
-GET /api/eligible_users: Get eligible users.
-
-POST /api/send_notifications: Send notifications.
-
-POST /api/schedule_notifications: Schedule notifications.
-
-POST /api/suggest_message: AI message suggestion.
-
-Testing
-It is reccomended to perform testing in it's own branch and not on main to maintain database integrity
-Run backend tests:
-bash
-
+```bash
 pytest -v tests/
+```
 
-Development Notes
-Documentation: Python, JavaScript, and HTML files are annotated with docstrings, JSDoc, and inline comments.
+---
 
-Future Improvements
+## Development Notes
 
-Support multi-channel notifications (SMS, push).
+- **Documentation:** Python, JavaScript, and HTML files are annotated with docstrings, JSDoc comments, and inline explanations.
+- **Best Practice:** Follow modular and scalable coding standards for future feature additions.
 
-Integrate real user data.
+---
 
-Optimise database for scalability.
+## Future Improvements
 
+- Support multi-channel notifications (SMS, push notifications).
+- Integrate real-time user data collection.
+- Optimise database schema for scalability.
 
-Contact
-[William Tsinontas] ([ed20wt@leeds.ac.uk])
+---
+
+## Contact
+
+**William Tsinontas** — [ed20wt@leeds.ac.uk](mailto:ed20wt@leeds.ac.uk)
 
